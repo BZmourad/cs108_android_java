@@ -40,6 +40,7 @@ import com.csl.cs108ademoapp.fragments.HomeFragment;
 import com.csl.cs108ademoapp.fragments.HomeSpecialFragment;
 import com.csl.cs108ademoapp.fragments.ImpinjFragment;
 import com.csl.cs108ademoapp.fragments.ImpinjM775Fragment;
+import com.csl.cs108ademoapp.fragments.InventaireFragment;
 import com.csl.cs108ademoapp.fragments.InventoryFragment;
 import com.csl.cs108ademoapp.fragments.InventoryRfidSearchFragment;
 import com.csl.cs108ademoapp.fragments.InventoryRfidSimpleFragment;
@@ -367,6 +368,12 @@ public class MainActivity extends LayoutBarActivity {
     }
     public void rrClicked(View view) {
         selectItem(DrawerPositions.READWRITE);
+    }
+    public void inventaireClicked(View view) {
+        fragment = new InventaireFragment();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.content_frame, fragment, TAG_CONTENT_FRAGMENT).addToBackStack(null).commit();
+        mDrawerLayout.closeDrawer(mDrawerList);
     }
     public void rrUserClicked(View view) { selectItem(DrawerPositions.READWRITEUSER); }
 
