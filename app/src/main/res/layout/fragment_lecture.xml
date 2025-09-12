@@ -11,6 +11,22 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <Button
+            android:id="@+id/buttonScan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Scan"
+            android:layout_marginTop="8dp"
+            style="@style/Widget.AppCompat.Button.Colored"/>
+
+        <Button
+            android:id="@+id/buttonParam"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Paramétre"
+            android:layout_marginTop="8dp"
+            style="@style/Widget.AppCompat.Button.Colored"/>
+
         <!-- En-tête avec navigation circulaire -->
         <LinearLayout
             android:layout_width="match_parent"
