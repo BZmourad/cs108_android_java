@@ -159,6 +159,12 @@ public class MainActivity extends LayoutBarActivity {
         super.onDestroy();
     }
 
+    @Override
+    public boolean isRfidConnect() {
+        super.isRfidConnect();
+        return csLibrary4A.isBleConnected();
+    }
+
     boolean configureDisplaying = false;
     Toast configureToast;
     private final Runnable configureRunnable = new Runnable() {
@@ -370,10 +376,15 @@ public class MainActivity extends LayoutBarActivity {
         selectItem(DrawerPositions.READWRITE);
     }
     public void inventaireClicked(View view) {
-        fragment = new InventaireFragment();
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.content_frame, fragment, TAG_CONTENT_FRAGMENT).addToBackStack(null).commit();
-        mDrawerLayout.closeDrawer(mDrawerList);
+        if (csLibrary4A.isBleConnected() == false) {
+            Toast.makeText(MainActivity.mContext, "Bluetooth Disconnected.  Please Connect.", Toast.LENGTH_SHORT).show();
+            return;
+        } else {
+            fragment = new InventaireFragment();
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            fragmentManager.beginTransaction().replace(R.id.content_frame, fragment, TAG_CONTENT_FRAGMENT).addToBackStack(null).commit();
+            mDrawerLayout.closeDrawer(mDrawerList);
+        }
     }
     public void rrUserClicked(View view) { selectItem(DrawerPositions.READWRITEUSER); }
 

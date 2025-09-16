@@ -128,7 +128,7 @@ public class LayoutBarActivity extends AppCompatActivity {
             });
         }).start();
 
-        boolean isRfidConnected = false;
+        boolean isRfidConnected = isRfidConnect();
         runOnUiThread(() -> {
             ledRfid.setImageResource(isRfidConnected ? R.drawable.led_green : R.drawable.led_red);
         });
@@ -143,5 +143,9 @@ public class LayoutBarActivity extends AppCompatActivity {
         } catch (IOException e) {
             return false;
         }
+    }
+
+    public boolean isRfidConnect() {
+        return false;
     }
 }

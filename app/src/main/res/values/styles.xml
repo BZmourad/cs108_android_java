@@ -111,6 +111,13 @@
     </style>
 
     <!--Style for the font to be used in buttons -->
+    <style name="style_button_font_2">
+        <item name="android:textAppearance">?android:attr/textAppearanceLarge</item>
+        <item name="android:textColor">@android:color/primary_text_dark</item>
+        <item name="android:background">#CC000000</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+
     <style name="style_button_font">
         <item name="android:textAppearance">?android:attr/textAppearanceLarge</item>
         <item name="android:textColor">@android:color/primary_text_dark</item>

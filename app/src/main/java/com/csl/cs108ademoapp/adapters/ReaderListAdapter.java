@@ -78,6 +78,7 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
             else if (reader.getServiceUUID2p1() == 2) text1 += "\nCS710S Reader";
         }
         checkedTextView.setText(text1);
+        MainActivity.csLibrary4A.appendToLog("mouradbz : " + text1);
         if (reader.getSelected()) {
             checkedTextView.setChecked(true);
         } else {
@@ -153,7 +154,6 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
             }
             portTextView.setText(Html.fromHtml(strExtra));
         }
-
         TextView readerDetailA = (TextView) convertView.findViewById(R.id.reader_detailA);
         TextView readerDetailB = (TextView) convertView.findViewById(R.id.reader_detailB);
         if (reader.isConnected() || checkedTextView.isChecked() || select4detail == false) {
