@@ -1,4 +1,5 @@
 package com.csl.cs108ademoapp.fragments;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -31,16 +32,23 @@ import com.csl.cslibrary4a.NotificationConnector;
 import com.csl.cslibrary4a.ReaderDevice;
 import com.csl.cslibrary4a.RfidReader;
 import com.csl.cslibrary4a.RfidReaderChipData;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import com.csl.cs108ademoapp.apps.SharedPrefManager;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import org.json.JSONObject;
+import android.widget.ImageView;
 
 public class LectureFragment extends CommonFragment {
     final private boolean bAdd2End = false;
     private boolean bMultiBank = false, bMultiBankInventory = false, bctesiusInventory = false;
     private RfidReader.TagType tagType;
     private String mDid = null;
+    public Context ctx;
     int vibrateTimeBackup = 0;
     private CheckBox checkBoxDupElim, checkBoxFilterByTid, checkBoxFilterByEpc, checkBoxFilterByProtect;
     private EditText editTextProtectPassword;
@@ -56,6 +64,7 @@ public class LectureFragment extends CommonFragment {
     private InventoryRfidTask inventoryRfidTask;
     private String codeInv;
     private String codeMission;
+    private String token;
     void clearTagsList() {
         MainActivity.csLibrary4A.appendToLog("InventoryRfidMultiFragment: NOT onOptionsItemSelected: clearTagsList");
         MainActivity.csLibrary4A.appendToLog("runningInventoryRfidTask = " + MainActivity.sharedObjects.runningInventoryRfidTask + ", readerListAdapter" + (readerListAdapter != null ? " tagCount = " + String.valueOf(readerListAdapter.getCount()) : " = NULL"));
@@ -127,6 +136,8 @@ public class LectureFragment extends CommonFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ctx = getActivity();
+        token = SharedPrefManager.getInstance(ctx).getToken();
         if (getArguments() != null) {
             bMultiBank = getArguments().getBoolean("bMultiBank");
             mDid = getArguments().getString("mDid");
@@ -146,6 +157,8 @@ public class LectureFragment extends CommonFragment {
                     bctesiusInventory = true;
                 }
             }
+            codeInv = getArguments().getString("codeInv");
+            codeMission = getArguments().getString("codeMission");
         }
     }
     @Override
@@ -554,15 +567,125 @@ public class LectureFragment extends CommonFragment {
                 ReaderDevice device = readerListAdapter.getItem(i);
                 if (device != null) {
                     allReaderDevices.add(device);
-                    MainActivity.csLibrary4A.appendToLogView("Device " + i + ": " +"Address: " + device.getAddress());
+                    String tag = device.getAddress();
+                    MainActivity.csLibrary4A.appendToLogView("N° " + i + ": tag: " + tag);
+                    new VerifyTagTask(i, tag).execute();
                 }
             }
-            processReaderDevices(allReaderDevices);
         }
     }
-    private void processReaderDevices(ArrayList<ReaderDevice> devices) {
-        for (ReaderDevice device : devices) {
-            MainActivity.csLibrary4A.appendToLogView("Device traité: " + device.getAddress());
+
+    // Update the VerifyTagTask class to handle the new response structure
+    private class VerifyTagTask extends AsyncTask<Void, Void, JSONObject> {
+        private int position;
+        private String tag;
+
+        public VerifyTagTask(int position, String tag) {
+            this.position = position;
+            this.tag = tag;
         }
+
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
+            HttpURLConnection connection = null;
+            try {
+                String urlString = "http://192.168.1.50/GESTION_INV_CNAM_WEB/FR/api-inv-search-cod.awp?log=" + token + "&inv=" + codeInv + "&code=" + tag;
+
+                URL url = new URL(urlString);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+
+                int responseCode = connection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
+
+                    return new JSONObject(response.toString());
+                } else {
+                    // Return an error JSON object
+                    JSONObject errorObj = new JSONObject();
+                    errorObj.put("sRes", "error");
+                    return errorObj;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                try {
+                    JSONObject errorObj = new JSONObject();
+                    errorObj.put("sRes", "error");
+                    return errorObj;
+                } catch (Exception ex) {
+                    return null;
+                }
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject result) {
+            if (getActivity() != null && result != null) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateVerificationStatus(position, tag, result);
+                    }
+                });
+            }
+        }
+    }
+
+    private void updateVerificationStatus(int position, String tag, JSONObject result) {
+        View listItemView = getListView().getChildAt(position - getListView().getFirstVisiblePosition());
+
+        if (listItemView != null) {
+            ImageView verifyStatus = listItemView.findViewById(R.id.verify_status);
+
+            try {
+                String sRes = result.getString("sRes");
+
+                if ("ok".equals(sRes)) {
+                    // Check if the tag matches any of the fields in tab_srch
+                    JSONObject tabSrch = result.getJSONObject("tab_srch");
+                    String codeImmo = tabSrch.optString("CodeImmo", "");
+                    String codeArticle = tabSrch.optString("codeArticle", "");
+                    String codeBarreInv = tabSrch.optString("codeBarre_inv", "");
+                    String numSerieInv = tabSrch.optString("num_serie_inv", "");
+                    String ancienCodeInv = tabSrch.optString("ancien_code_inv", "");
+                    String lib = tabSrch.optString("lib", "");
+
+                    if ("".equals(codeImmo) && "".equals(codeArticle) && "".equals(codeBarreInv) &&
+                            "".equals(numSerieInv) && "".equals(ancienCodeInv) && "".equals(lib)) {
+                        verifyStatus.setImageResource(R.drawable.ic_not_found);
+                    } else {
+                        verifyStatus.setImageResource(R.drawable.ic_verified);
+                    }
+                } else if ("non trouvé".equals(sRes)) {
+                    verifyStatus.setImageResource(R.drawable.ic_not_found);
+                } else {
+                    // For "error" or any other status
+                    verifyStatus.setImageResource(R.drawable.ic_pending);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                verifyStatus.setImageResource(R.drawable.ic_pending);
+            }
+
+            // Force the list item to redraw
+            readerListAdapter.notifyDataSetChanged();
+        }
+    }
+
+    // Helper method to get the ListView
+    private ListView getListView() {
+        return rfidListView;
     }
 }
