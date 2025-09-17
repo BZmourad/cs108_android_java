@@ -42,9 +42,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import org.json.JSONObject;
 import android.widget.ImageView;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.widget.EditText;
+import com.csl.cs108ademoapp.SettingTask;
 
 public class LectureFragment extends CommonFragment {
     final private boolean bAdd2End = false;
+    private Button settingRfidButton;
     private boolean bMultiBank = false, bMultiBankInventory = false, bctesiusInventory = false;
     private RfidReader.TagType tagType;
     private String mDid = null;
@@ -159,6 +164,80 @@ public class LectureFragment extends CommonFragment {
             }
             codeInv = getArguments().getString("codeInv");
             codeMission = getArguments().getString("codeMission");
+        }
+    }
+    private String getSavedPowerLevel() {
+        return String.valueOf(MainActivity.csLibrary4A.getPwrlevel());
+    }
+    private void showPowerSettingsDialog() {
+        String savedPowerLevel = getSavedPowerLevel();
+        // Inflate the dialog layout
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_power_settings, null);
+
+        final EditText powerLevelEditText = dialogView.findViewById(R.id.powerLevelEditText);
+        powerLevelEditText.setText(savedPowerLevel);
+        // Create the dialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setView(dialogView);
+        builder.setTitle("Power Settings");
+
+        builder.setPositiveButton("Validate", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String powerLevelStr = powerLevelEditText.getText().toString();
+                if (!powerLevelStr.isEmpty()) {
+                    try {
+                        long powerLevel = Long.parseLong(powerLevelStr);
+                        if (powerLevel >= 0 && powerLevel <= 300) {
+                            savePowerLevel(powerLevel);
+                        } else {
+                            Toast.makeText(getContext(), "Please enter a value between 0 and 300", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(getContext(), "Please enter a valid number", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(getContext(), "Please enter a power level", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+    private void savePowerLevel(long powerLevel) {
+        if (MainActivity.csLibrary4A.isBleConnected() == false) {
+            Toast.makeText(MainActivity.mContext, R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
+            return;
+        } else if (MainActivity.csLibrary4A.isRfidFailure()) {
+            Toast.makeText(MainActivity.mContext, "Rfid is disabled", Toast.LENGTH_SHORT).show();
+            return;
+        } else {
+            try {
+                if (MainActivity.csLibrary4A.getPwrlevel() != powerLevel) {
+                    if(MainActivity.csLibrary4A.setPowerLevel(powerLevel) == false){
+                        boolean changedChannel = false;
+                        SettingTask settingTask;
+                        settingTask = new SettingTask(settingRfidButton, false, false);
+                        settingTask.execute();
+                        MainActivity.csLibrary4A.saveSetting2File();
+                        //mHandler.post(updateRunnable);
+                        Toast.makeText(MainActivity.mContext, R.string.toast_invalid_range, Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getContext(), "Power level set to: " + powerLevel+" ("+getSavedPowerLevel()+")", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+            } catch (Exception ex) {
+                Toast.makeText(MainActivity.mContext, R.string.toast_invalid_range, Toast.LENGTH_SHORT).show();
+            }
         }
     }
     @Override
@@ -293,6 +372,16 @@ public class LectureFragment extends CommonFragment {
                 }
             }
         });
+
+        settingRfidButton = getActivity().findViewById(R.id.settingRfidButton);
+        if (settingRfidButton != null) {
+            settingRfidButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showPowerSettingsDialog();
+                }
+            });
+        }
     }
     @Override
     public void onResume() {
