@@ -15,7 +15,9 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:layout_alignParentTop="true"
-            android:background="@color/teal_700" />
+            android:background="@color/colorBlueDark"
+            app:subtitleTextColor="@color/white"
+            app:titleTextColor="@color/white"/>
 
         <FrameLayout
             android:id="@+id/content_frame"
@@ -30,7 +32,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:backgroundTint="@color/teal_700"
+            android:backgroundTint="@color/colorBlueDark"
             android:background="?attr/colorPrimary"
             app:fabAlignmentMode="end"
             app:fabCradleMargin="8dp"
@@ -128,6 +130,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@android:drawable/ic_lock_power_off"
+                    android:background="@color/white"
                     android:contentDescription="@string/logout" />
 
             </LinearLayout>

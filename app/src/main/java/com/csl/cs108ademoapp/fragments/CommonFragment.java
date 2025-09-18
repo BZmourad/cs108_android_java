@@ -240,6 +240,8 @@ public abstract class CommonFragment extends Fragment {
             menuTriggerItem = menu.findItem(R.id.home_trigger);
             menu.removeItem(R.id.home_menu);
             if (fragmentName.matches("InventoryFragment")
+                    || fragmentName.contains("LectureFragment")
+                    || fragmentName.contains("InventaireFragment")
                     || fragmentName.contains("InventoryRfidiMultiFragment")
                     || fragmentName.contains("InventoryRfidSimpleFragment")
 

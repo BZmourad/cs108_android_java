@@ -10,14 +10,16 @@
         android:id="@+id/OperationsTabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
+        android:background="@color/colorBlue01"
         android:elevation="6dp"
         android:minHeight="?attr/actionBarSize"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        tools:ignore="SpeakableTextPresentCheck" />
 
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/OperationsPager"
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
-        android:layout_below="@id/OperationsTabLayout"/>
+        android:layout_below="@id/OperationsTabLayout"
+        tools:ignore="SpeakableTextPresentCheck" />
 </RelativeLayout>

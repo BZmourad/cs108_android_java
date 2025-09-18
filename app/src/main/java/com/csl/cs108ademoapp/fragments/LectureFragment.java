@@ -14,6 +14,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -298,7 +299,7 @@ public class LectureFragment extends CommonFragment {
         boolean needDupElim = true;
         boolean need4Extra1 = MainActivity.csLibrary4A.getPortNumber() > 1 ? true : false;
         boolean need4Extra2 = (mDid != null ? true : false);
-        readerListAdapter = new ReaderListAdapter(getActivity(), R.layout.readers_list_item, MainActivity.sharedObjects.tagsList, bSelect4detail, true, needDupElim, need4Extra1, need4Extra2);
+        readerListAdapter = new ReaderListAdapter(getActivity(), R.layout.readers_list_item_inventory, MainActivity.sharedObjects.tagsList, bSelect4detail, true, needDupElim, need4Extra1, need4Extra2);
         rfidListView.setAdapter(readerListAdapter);
         rfidListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         rfidListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -378,7 +379,9 @@ public class LectureFragment extends CommonFragment {
             settingRfidButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    showPowerSettingsDialog();
+                    //showPowerSettingsDialog();
+                    Setting2Fragment setting2Fragment = new Setting2Fragment();
+                    getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, setting2Fragment).addToBackStack(null).commit();
                 }
             });
         }
@@ -737,6 +740,7 @@ public class LectureFragment extends CommonFragment {
 
         if (listItemView != null) {
             ImageView verifyStatus = listItemView.findViewById(R.id.verify_status);
+            ImageButton buttonLancerDetail = listItemView.findViewById(R.id.buttonLancerDetail);
 
             try {
                 String sRes = result.getString("sRes");
@@ -754,18 +758,26 @@ public class LectureFragment extends CommonFragment {
                     if ("".equals(codeImmo) && "".equals(codeArticle) && "".equals(codeBarreInv) &&
                             "".equals(numSerieInv) && "".equals(ancienCodeInv) && "".equals(lib)) {
                         verifyStatus.setImageResource(R.drawable.ic_not_found);
+                        buttonLancerDetail.setVisibility(View.VISIBLE);
+                        buttonLancerDetail.setImageResource(R.drawable.ic_add);
                     } else {
                         verifyStatus.setImageResource(R.drawable.ic_verified);
+                        buttonLancerDetail.setVisibility(View.VISIBLE);
+                        buttonLancerDetail.setImageResource(R.drawable.ic_edit);
                     }
                 } else if ("non trouvé".equals(sRes)) {
                     verifyStatus.setImageResource(R.drawable.ic_not_found);
+                    buttonLancerDetail.setVisibility(View.VISIBLE);
+                    buttonLancerDetail.setImageResource(R.drawable.ic_add);
                 } else {
                     // For "error" or any other status
                     verifyStatus.setImageResource(R.drawable.ic_pending);
+                    buttonLancerDetail.setVisibility(View.INVISIBLE);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 verifyStatus.setImageResource(R.drawable.ic_pending);
+                buttonLancerDetail.setVisibility(View.INVISIBLE);
             }
 
             // Force the list item to redraw

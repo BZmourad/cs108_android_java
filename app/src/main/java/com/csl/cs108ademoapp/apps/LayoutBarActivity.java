@@ -66,6 +66,7 @@ public class LayoutBarActivity extends AppCompatActivity {
         super.onPause();
         stopConnectionMonitoring();
     }
+    
     public void showProgressDialog(Context context, String message) {
         if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();

@@ -64,7 +64,7 @@ public class HomeFragment extends CommonFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState, true);
         if (getActivity().getPackageName().contains("com.csl.cs710ademoapp")) return inflater.inflate(R.layout.home_layout710, container, false);
-        else return inflater.inflate(R.layout.home_layout108, container, false);
+        else return inflater.inflate(R.layout.home_layout_new, container, false);
     }
 
     @Override
