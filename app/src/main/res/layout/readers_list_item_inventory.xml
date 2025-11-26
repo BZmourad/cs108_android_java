@@ -36,14 +36,26 @@
             android:src="@drawable/ic_pending"/>
 
         <ImageButton
-            android:id="@+id/buttonLancerDetail"
+            android:id="@+id/buttonEditDetail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:paddingHorizontal="7dp"
             android:paddingVertical="5dp"
-            android:src="@drawable/ic_eye"
-            android:contentDescription="Voir"
+            android:src="@drawable/ic_edit"
+            android:contentDescription="Edit"
+            android:visibility="gone"
+            />
+
+        <ImageButton
+            android:id="@+id/buttonAddDetail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingHorizontal="7dp"
+            android:paddingVertical="5dp"
+            android:src="@drawable/ic_add"
+            android:contentDescription="Add"
             android:visibility="gone"
             />
 

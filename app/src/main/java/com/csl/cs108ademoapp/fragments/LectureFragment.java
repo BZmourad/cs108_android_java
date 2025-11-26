@@ -740,7 +740,8 @@ public class LectureFragment extends CommonFragment {
 
         if (listItemView != null) {
             ImageView verifyStatus = listItemView.findViewById(R.id.verify_status);
-            ImageButton buttonLancerDetail = listItemView.findViewById(R.id.buttonLancerDetail);
+            ImageButton buttonEditDetail = listItemView.findViewById(R.id.buttonEditDetail);
+            ImageButton buttonAddDetail = listItemView.findViewById(R.id.buttonAddDetail);
 
             try {
                 String sRes = result.getString("sRes");
@@ -758,26 +759,28 @@ public class LectureFragment extends CommonFragment {
                     if ("".equals(codeImmo) && "".equals(codeArticle) && "".equals(codeBarreInv) &&
                             "".equals(numSerieInv) && "".equals(ancienCodeInv) && "".equals(lib)) {
                         verifyStatus.setImageResource(R.drawable.ic_not_found);
-                        buttonLancerDetail.setVisibility(View.VISIBLE);
-                        buttonLancerDetail.setImageResource(R.drawable.ic_add);
+                        buttonAddDetail.setVisibility(View.VISIBLE);
+                        buttonEditDetail.setVisibility(View.INVISIBLE);
                     } else {
                         verifyStatus.setImageResource(R.drawable.ic_verified);
-                        buttonLancerDetail.setVisibility(View.VISIBLE);
-                        buttonLancerDetail.setImageResource(R.drawable.ic_edit);
+                        buttonEditDetail.setVisibility(View.VISIBLE);
+                        buttonAddDetail.setVisibility(View.INVISIBLE);
                     }
                 } else if ("non trouvé".equals(sRes)) {
                     verifyStatus.setImageResource(R.drawable.ic_not_found);
-                    buttonLancerDetail.setVisibility(View.VISIBLE);
-                    buttonLancerDetail.setImageResource(R.drawable.ic_add);
+                    buttonAddDetail.setVisibility(View.VISIBLE);
+                    buttonEditDetail.setVisibility(View.INVISIBLE);
                 } else {
                     // For "error" or any other status
                     verifyStatus.setImageResource(R.drawable.ic_pending);
-                    buttonLancerDetail.setVisibility(View.INVISIBLE);
+                    buttonAddDetail.setVisibility(View.INVISIBLE);
+                    buttonEditDetail.setVisibility(View.INVISIBLE);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 verifyStatus.setImageResource(R.drawable.ic_pending);
-                buttonLancerDetail.setVisibility(View.INVISIBLE);
+                buttonAddDetail.setVisibility(View.INVISIBLE);
+                buttonEditDetail.setVisibility(View.INVISIBLE);
             }
 
             // Force the list item to redraw
