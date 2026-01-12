@@ -77,7 +77,7 @@ public class InventaireFragment extends CommonFragment {
         executorService.execute(() -> {
             try {
                 String token = SharedPrefManager.getInstance(ctx).getToken();
-                String apiUrl = "http://192.168.1.50/GESTION_INV_CNAM_WEB/FR/api-menu-mission.awp?log=" + token;
+                String apiUrl = "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-menu-mission.awp?log=" + token;
 
                 URL url = new URL(apiUrl);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();

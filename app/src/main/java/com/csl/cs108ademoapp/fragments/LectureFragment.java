@@ -681,7 +681,7 @@ public class LectureFragment extends CommonFragment {
         protected JSONObject doInBackground(Void... voids) {
             HttpURLConnection connection = null;
             try {
-                String urlString = "http://192.168.1.50/GESTION_INV_CNAM_WEB/FR/api-inv-search-cod.awp?log=" + token + "&inv=" + codeInv + "&code=" + tag;
+                String urlString = "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-inv-search-cod.awp?log=" + token + "&inv=" + codeInv + "&code=" + tag;
 
                 URL url = new URL(urlString);
                 connection = (HttpURLConnection) url.openConnection();

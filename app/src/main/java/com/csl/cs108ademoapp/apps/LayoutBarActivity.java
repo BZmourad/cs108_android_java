@@ -23,7 +23,7 @@ public class LayoutBarActivity extends AppCompatActivity {
     protected ProgressDialog progressDialog;
     protected Handler connectionHandler = new Handler();
     protected Runnable connectionChecker;
-    protected static final String SERVER_IP = "192.168.1.50";
+    protected static final String SERVER_IP = "192.168.100.50";
     protected static final int SERVER_PORT = 80; // Changez selon votre configuration
     protected static final int CHECK_INTERVAL = 5000;
     @Override

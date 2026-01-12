@@ -116,7 +116,7 @@ public class LoginActivity extends AppCompatActivity {
 
             try {
                 // Log the URL being called
-                String urlString = "http://192.168.1.50/GESTION_INV_CNAM_WEB/FR/api-verif-login.awp?log=" +
+                String urlString = "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-verif-login.awp?log=" +
                         username + "&motPass=" + password;
                 Log.d("LoginTask", "Attempting to call URL: " + urlString);
 
