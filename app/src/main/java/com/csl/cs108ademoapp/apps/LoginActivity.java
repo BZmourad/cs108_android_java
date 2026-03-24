@@ -8,7 +8,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,21 +29,22 @@ import com.csl.cs108ademoapp.MainActivity;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText etUsername, etPassword;
-    private Switch switchMode;
-    private Button btnLogin;
+    private Button btnLogin, btnConfig;
     private DatabaseHelper dbHelper;
     private ProgressDialog progressDialog;
+    private SharedPrefManager sharedPrefManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Initialize database helper
+        // Initialize database helper and shared preferences
         dbHelper = new DatabaseHelper(this);
+        sharedPrefManager = SharedPrefManager.getInstance(this);
 
         // Check if user is already logged in
-        if (SharedPrefManager.getInstance(this).isLoggedIn()) {
+        if (sharedPrefManager.isLoggedIn()) {
             startActivity(new Intent(this, MainActivity.class));
             finish();
             return;
@@ -53,8 +53,8 @@ public class LoginActivity extends AppCompatActivity {
         // Initialize views
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
-        switchMode = findViewById(R.id.switchMode);
         btnLogin = findViewById(R.id.btnLogin);
+        btnConfig = findViewById(R.id.btnConfig);
 
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,12 +62,22 @@ public class LoginActivity extends AppCompatActivity {
                 loginUser();
             }
         });
+
+        btnConfig.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent configIntent = new Intent(LoginActivity.this, ConfigActivity.class);
+                startActivity(configIntent);
+            }
+        });
     }
 
     private void loginUser() {
         final String username = etUsername.getText().toString().trim();
         final String password = etPassword.getText().toString().trim();
-        final boolean isOnline = switchMode.isChecked();
+        
+        // Get the configured mode from SharedPreferences
+        final boolean isOnline = sharedPrefManager.getAppMode().equals("online");
 
         if (username.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Please enter username and password", Toast.LENGTH_SHORT).show();
@@ -76,7 +86,7 @@ public class LoginActivity extends AppCompatActivity {
 
         showLoading("Authenticating...");
         if (isOnline) {
-            // Online mode - call API
+            // Online mode - call API using saved server URL
             new LoginTask().execute(username, password);
         } else {
             // Offline mode - check local database
@@ -115,9 +125,12 @@ public class LoginActivity extends AppCompatActivity {
             BufferedReader reader = null;
 
             try {
-                // Log the URL being called
-                String urlString = "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-verif-login.awp?log=" +
+                // Get server URL from configuration
+                String baseUrl = sharedPrefManager.getServerUrl();
+                // Build the complete URL
+                String urlString = baseUrl + "api-verif-login.awp?log=" +
                         username + "&motPass=" + password;
+                
                 Log.d("LoginTask", "Attempting to call URL: " + urlString);
 
                 URL url = new URL(urlString);
@@ -126,7 +139,6 @@ public class LoginActivity extends AppCompatActivity {
                 connection.setConnectTimeout(15000); // 15 seconds timeout
                 connection.setReadTimeout(15000);
 
-                // Log connection attempt
                 Log.d("LoginTask", "Connecting to server...");
 
                 responseCode = connection.getResponseCode();
@@ -274,7 +286,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void showLoading(String message) {
-        /*if (progressDialog != null && progressDialog.isShowing()) {
+        if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();
         }
         progressDialog = new ProgressDialog(this, R.style.ProgressDialogTheme);
@@ -285,14 +297,15 @@ public class LoginActivity extends AppCompatActivity {
         TextView tvMessage = progressDialog.findViewById(R.id.tvProgressMessage);
         if (tvMessage != null) {
             tvMessage.setText(message);
-        }*/
+        }
     }
 
     private void hideLoading() {
-        /*if (progressDialog != null && progressDialog.isShowing()) {
+        if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();
-        }*/
+        }
     }
+    
     @Override
     protected void onDestroy() {
         super.onDestroy();

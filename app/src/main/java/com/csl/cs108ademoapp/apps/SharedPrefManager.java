@@ -5,11 +5,17 @@ import android.content.SharedPreferences;
 
 public class SharedPrefManager {
     private static final String SHARED_PREF_NAME = "user_session";
+    private static final String SHARED_PREF_CONFIG = "app_config";
     private static final String KEY_USERNAME = "key_username";
     private static final String KEY_MODE = "key_mode"; // online or offline
     private static final String KEY_TOKEN = "key_token"; // for online mode
     private static final String KEY_USER_CODE = "key_user_code";
     private static final String KEY_USER_NAME = "key_user_name";
+    
+    // Configuration keys
+    private static final String KEY_SERVER_URL = "key_server_url";
+    private static final String KEY_APP_MODE = "key_app_mode"; // "online" or "offline"
+    
     private static SharedPrefManager mInstance;
     private static Context mCtx;
 
@@ -70,5 +76,24 @@ public class SharedPrefManager {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear();
         editor.apply();
+    }
+    
+    // Configuration methods
+    public void saveServerConfig(String serverUrl, String appMode) {
+        SharedPreferences sharedPreferences = mCtx.getSharedPreferences(SHARED_PREF_CONFIG, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(KEY_SERVER_URL, serverUrl);
+        editor.putString(KEY_APP_MODE, appMode);
+        editor.apply();
+    }
+    
+    public String getServerUrl() {
+        SharedPreferences sharedPreferences = mCtx.getSharedPreferences(SHARED_PREF_CONFIG, Context.MODE_PRIVATE);
+        return sharedPreferences.getString(KEY_SERVER_URL, "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/");
+    }
+    
+    public String getAppMode() {
+        SharedPreferences sharedPreferences = mCtx.getSharedPreferences(SHARED_PREF_CONFIG, Context.MODE_PRIVATE);
+        return sharedPreferences.getString(KEY_APP_MODE, "online");
     }
 }

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="#FAFAFA"
+    tools:context=".apps.ConfigActivity"
+    android:gravity="center">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Configuration"
+        android:textColor="#212121"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Server URL"
+        android:textColor="#424242"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp"
+        android:layout_gravity="start" />
+
+    <EditText
+        android:id="@+id/etServerUrl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/"
+        android:inputType="textUri"
+        android:minHeight="48dp"
+        android:padding="12dp"
+        android:background="@drawable/edit_text_background"
+        android:textColor="#212121"
+        android:textSize="14sp"
+        android:elevation="2dp"
+        android:layout_marginBottom="24dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Application Mode"
+        android:textColor="#424242"
+        android:textSize="14sp"
+        android:layout_marginBottom="12dp"
+        android:layout_gravity="start" />
+
+    <RadioGroup
+        android:id="@+id/rgMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="32dp">
+
+        <RadioButton
+            android:id="@+id/rbOnline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Online Mode"
+            android:textSize="16sp"
+            android:textColor="#424242"
+            android:padding="8dp"
+            android:layout_marginBottom="8dp" />
+
+        <RadioButton
+            android:id="@+id/rbOffline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Offline Mode"
+            android:textSize="16sp"
+            android:textColor="#424242"
+            android:padding="8dp" />
+
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Save Configuration"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:minHeight="48dp"
+        android:background="@drawable/btn_login_background"
+        android:elevation="6dp" />
+
+</LinearLayout>
