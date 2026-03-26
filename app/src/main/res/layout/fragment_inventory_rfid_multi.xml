@@ -271,6 +271,15 @@
             android:layout_height="match_parent"
             style="@style/style_button_font"
             android:text="Vérifier" />
+        
+        <Button
+            android:id="@+id/clearListButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            style="@style/style_button_font"
+            android:text="Vider" />
+            
         <Button
             android:id="@+id/settingRfidButton"
             android:layout_width="0dp"

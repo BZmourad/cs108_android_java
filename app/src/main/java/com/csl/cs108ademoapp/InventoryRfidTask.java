@@ -115,7 +115,7 @@ public class InventoryRfidTask extends AsyncTask<Void, String, String> {
 
     @Override
     protected void onPreExecute() {
-        //inventoryHandler_setup();
+        inventoryHandler_setup();
     }
 
     byte[] notificationData;

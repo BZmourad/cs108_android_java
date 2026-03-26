@@ -77,7 +77,8 @@ public class InventaireFragment extends CommonFragment {
         executorService.execute(() -> {
             try {
                 String token = SharedPrefManager.getInstance(ctx).getToken();
-                String apiUrl = "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-menu-mission.awp?log=" + token;
+                String baseUrl = SharedPrefManager.getInstance(getContext()).getServerUrl();
+                String apiUrl = baseUrl + "api-menu-mission.awp?log=" + token;
 
                 URL url = new URL(apiUrl);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -271,19 +272,20 @@ public class InventaireFragment extends CommonFragment {
             holder.buttonLancer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    openLectureFragment(item.getCodeInv(), item.getCodeMission());
+                    openLectureFragment(item.getCodeInv(), item.getCodeMission(), item.getEquipe());
                 }
             });
 
             return convertView;
         }
 
-        private void openLectureFragment(String codeInv, String codeMission) {
+        private void openLectureFragment(String codeInv, String codeMission, String equipe) {
             LectureFragment lectureFragment = new LectureFragment();
             // Passer les paramètres via Bundle
             Bundle args = new Bundle();
             args.putString("codeInv", codeInv);
             args.putString("codeMission", codeMission);
+            args.putString("equipe", equipe);
             lectureFragment.setArguments(args);
             getActivity().getSupportFragmentManager().beginTransaction()
                     .replace(R.id.content_frame, lectureFragment).addToBackStack(null).commit();

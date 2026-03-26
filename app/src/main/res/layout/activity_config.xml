@@ -31,7 +31,7 @@
         android:id="@+id/etServerUrl"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/"
+        android:hint="http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/"
         android:inputType="textUri"
         android:minHeight="48dp"
         android:padding="12dp"

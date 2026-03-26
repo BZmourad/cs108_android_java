@@ -4,11 +4,11 @@ boolean success = syncController.performFullSynchronization();
 syncController.close();
 
 créer une classe de synchronisation avec le paramétre inconnu gsToken dans app\src\main\java\com\csl\cs108ademoapp\controller\.. :
-ajouter les exeptions necessaires et mettre "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/" comme variable globale:
+ajouter les exeptions necessaires et mettre "http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/" comme variable globale:
 
 1- Vider les tables:ArbreEmp,Proprietaire,ArbreEmp,Employee,FOURNISSEUR,SouSEtat,Attributs,valeursAttribut,Attributs_attbset,Utilisateur,Immo,inv_immo,Inv_attributinvImmo,Inv_equipe,Inv_EquipeEmpl,inv_mission,Inv_Mombreequipe,historique_ecar_inv,Det_inv_immo,immo_inv_image,InvImmoAttributValr
 
-2- get_all_equip: API GET "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-get-all-equipe.awp?log="+gsToken
+2- get_all_equip: API GET "http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/api-get-all-equipe.awp?log="+gsToken
 SI response.sRes = "ok" ALORS
 	POUR j = 1 À response.tab_equipe..Occurrence
 		Recherche existance dans Inv_equipe where codeEquipe = response.tab_equipe[j].sCode
@@ -27,7 +27,7 @@ SINON
 	RENVOYER Faux
 FIN
 
-3- get_all_equipe_membre: API GET "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-get-all-equipe-membre.awp?log="+gsToken
+3- get_all_equipe_membre: API GET "http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/api-get-all-equipe-membre.awp?log="+gsToken
 SI response.sRes = "ok" ALORS
 	POUR j = 1 À response.tab_equipe..Occurrence
 		Recherche existance dans Inv_Mombreequipe where Codeinv= response.tab_equipe[j].sCodeInv and codeEquipe= response.tab_equipe[j].sCode and CodeUtil= response.tab_equipe[j].sUser
@@ -44,7 +44,7 @@ SINON
 	RENVOYER Faux
 FIN
 
-4- get_all_inv: API GET "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-get-all-inv.awp?log="+gsToken
+4- get_all_inv: API GET "http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/api-get-all-inv.awp?log="+gsToken
 SI response.sRes = "ok" ALORS
 	POUR j = 1 À response.tabInv..Occurrence
 		Recherche existance dans inv_immo where CodeInventaire = response.tabInv[j].sCode
@@ -64,7 +64,7 @@ SINON
 	RENVOYER Faux
 FIN
 
-5- get_all_MissionInv: API GET "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-get-all-MissionInv.awp?log="+gsToken
+5- get_all_MissionInv: API GET "http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/api-get-all-MissionInv.awp?log="+gsToken
 SI response.sRes = "ok" ALORS
 	POUR j = 1 À response.tab_mission..Occurrence
 		Recherche existance dans inv_mission where Codeinv = response.tab_mission[j].sCodeInv and codemission= response.tab_mission[j].sCodeMis
@@ -85,7 +85,7 @@ SINON
 	RENVOYER Faux
 FIN
 
-6- get_all_inv_attribute_param: API GET "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-get-inv-attribute-param.awp?log="+gsToken
+6- get_all_inv_attribute_param: API GET "http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/api-get-inv-attribute-param.awp?log="+gsToken
 SI response.sRes = "ok" ALORS
 	POUR j = 1 À response.tab_inv_att..Occurrence
 		Recherche existance dans Inv_attributinvImmo where Codeinv =response.tab_inv_att[j].sCodeInv and codeatribut=response.tab_inv_att[j].sCode
@@ -104,7 +104,7 @@ SINON
 	RENVOYER Faux
 FIN
 
-7- get_all_equip_empl: API GET "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-get-all-equipe-emplacement.awp?log="+gsToken
+7- get_all_equip_empl: API GET "http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/api-get-all-equipe-emplacement.awp?log="+gsToken
 SI response.sRes = "ok" ALORS
 	POUR j = 1 À response.tab_equipe..Occurrence
 		Recherche existance dans Inv_attributinvImmo where Codeinv= response.tab_equipe[j].sCodeInv and codemission=response.tab_equipe[j].sCodeMis and codeEquipe=response.tab_equipe[j].sCode and CodeEmplacement= response.tab_equipe[j].sCodeEmp
@@ -121,7 +121,7 @@ SINON
 	RENVOYER Faux
 FIN
 
-8- get_all_etat: API GET "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-get-etat.awp?log="+gsToken
+8- get_all_etat: API GET "http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/api-get-etat.awp?log="+gsToken
 SI response.sRes = "ok" ALORS
 	POUR j = 1 À response.tab_etat..Occurrence
 		Recherche existance dans SouSEtat where LibelleEtat= response.tab_etat[j].sLib
@@ -139,7 +139,7 @@ SINON
 	RENVOYER Faux
 FIN
 
-9- get_inv_emp: API GET "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-get-empyes.awp?log="+gsToken
+9- get_inv_emp: API GET "http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/api-get-empyes.awp?log="+gsToken
 SI response.sRes = "ok" ALORS
 	POUR j = 1 À response.tab_empyes..Occurrence
 		Recherche existance dans Employee where CodeEmployee= response.tab_empyes[j].sCode
@@ -165,7 +165,7 @@ SINON
 	RENVOYER Faux
 FIN
 
-10- get_invAtt: API GET "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-get-empyes.awp?log="+gsToken
+10- get_invAtt: API GET "http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/api-get-empyes.awp?log="+gsToken
 SI response.sRes = "ok" ALORS
 	POUR j = 1 À response.tab_att..Occurrence
 		Recherche existance dans Attributs where libCode= response.tab_att[j].sLib
@@ -184,7 +184,7 @@ SINON
 	RENVOYER Faux
 FIN
 
-11- get_AttValr: API GET "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-get-AttValeur.awp?log="+gsToken
+11- get_AttValr: API GET "http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/api-get-AttValeur.awp?log="+gsToken
 SI response.sRes = "ok" ALORS
 	POUR j = 1 À response.tab_attValr..Occurrence
 		ajoute valeursAttribut:
@@ -197,7 +197,7 @@ SINON
 	RENVOYER Faux
 FIN
 
-12- get_attribute_set: API GET "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-get-AttSet.awp?log="+gsToken
+12- get_attribute_set: API GET "http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/api-get-AttSet.awp?log="+gsToken
 SI response.sRes = "ok" ALORS
 	POUR j = 1 À response.tab_equipe..Occurrence
 		Recherche existance dans Attributs_attbset where codeAttribus=response.tab_att[j].sCodeAtt and codeAttribusSet = response.tab_att[j].sCode
@@ -212,7 +212,7 @@ SINON
 	RENVOYER Faux
 FIN
 
-13- get_all_user: API GET "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-get-all-user.awp?log="+gsToken
+13- get_all_user: API GET "http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/api-get-all-user.awp?log="+gsToken
 SI response.sRes = "ok" ALORS
 	POUR j = 1 À response.tabUtlstr..Occurrence
 		Recherche existance dans Utilisateur where login = response.tabUtlstr[j].sLogin
@@ -245,7 +245,7 @@ SINON
 	RENVOYER Faux
 FIN
 
-14- get_all_emplacements: API GET "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-get-all-emplacement.awp?log="+gsToken
+14- get_all_emplacements: API GET "http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/api-get-all-emplacement.awp?log="+gsToken
 SI response.sRes = "ok" ALORS
 	POUR j = 1 À response.tabRetoure..Occurrence
 		Recherche existance dans ArbreEmp where code= response.tabRetoure[j].sCode

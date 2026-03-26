@@ -89,7 +89,7 @@ public class SharedPrefManager {
     
     public String getServerUrl() {
         SharedPreferences sharedPreferences = mCtx.getSharedPreferences(SHARED_PREF_CONFIG, Context.MODE_PRIVATE);
-        return sharedPreferences.getString(KEY_SERVER_URL, "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/");
+        return sharedPreferences.getString(KEY_SERVER_URL, "http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/");
     }
     
     public String getAppMode() {

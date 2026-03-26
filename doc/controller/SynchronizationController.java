@@ -25,7 +25,7 @@ import java.util.Locale;
 
 public class SynchronizationController {
     private static final String TAG = "SynchronizationController";
-    private static final String BASE_URL = "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/";
+    private static final String BASE_URL = "http://196.203.88.132/GESTION_INV_CNAM_WEB/FR/";
     
     private Context context;
     private DatabaseHelper dbHelper;

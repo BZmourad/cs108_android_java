@@ -6,7 +6,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckedTextView;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.csl.cs108ademoapp.MainActivity;
@@ -156,6 +158,23 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
         }
         TextView readerDetailA = (TextView) convertView.findViewById(R.id.reader_detailA);
         TextView readerDetailB = (TextView) convertView.findViewById(R.id.reader_detailB);
+        ImageView verifyStatus = convertView.findViewById(R.id.verify_status);
+        Button buttonAddDetail = convertView.findViewById(R.id.buttonAddDetail);
+        Button buttonEditDetail = convertView.findViewById(R.id.buttonEditDetail);
+
+        // Configurez les visibilités initiales
+        if (verifyStatus != null) {
+            verifyStatus.setVisibility(View.VISIBLE);
+        }
+        if (buttonAddDetail != null) {
+            buttonAddDetail.setVisibility(View.GONE);
+            buttonAddDetail.setTag(position);
+        }
+        if (buttonEditDetail != null) {
+            buttonEditDetail.setVisibility(View.GONE);
+            buttonEditDetail.setTag(position);
+        }
+
         if (reader.isConnected() || checkedTextView.isChecked() || select4detail == false) {
             readerDetailA.setText(reader.getDetails());
             readerDetailB.setText("");

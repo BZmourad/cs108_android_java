@@ -70,6 +70,7 @@ public class LectureFragment extends CommonFragment {
     private InventoryRfidTask inventoryRfidTask;
     private String codeInv;
     private String codeMission;
+    private String equipe;
     private String token;
     void clearTagsList() {
         MainActivity.csLibrary4A.appendToLog("InventoryRfidMultiFragment: NOT onOptionsItemSelected: clearTagsList");
@@ -165,6 +166,7 @@ public class LectureFragment extends CommonFragment {
             }
             codeInv = getArguments().getString("codeInv");
             codeMission = getArguments().getString("codeMission");
+            equipe = getArguments().getString("equipe");
         }
     }
     private String getSavedPowerLevel() {
@@ -353,6 +355,14 @@ public class LectureFragment extends CommonFragment {
             @Override
             public void onClick(View v) {
                 verifyTagsList();
+            }
+        });
+        Button clearListButton = (Button) getActivity().findViewById(R.id.clearListButton);
+        clearListButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearTagsList();
+                Toast.makeText(getActivity(), "Liste vidée", Toast.LENGTH_SHORT).show();
             }
         });
         vibrateTimeBackup = MainActivity.csLibrary4A.getVibrateTime();
@@ -681,7 +691,8 @@ public class LectureFragment extends CommonFragment {
         protected JSONObject doInBackground(Void... voids) {
             HttpURLConnection connection = null;
             try {
-                String urlString = "http://192.168.100.50/GESTION_INV_CNAM_WEB/FR/api-inv-search-cod.awp?log=" + token + "&inv=" + codeInv + "&code=" + tag;
+                String baseUrl = SharedPrefManager.getInstance(getContext()).getServerUrl();
+                String urlString = baseUrl + "api-inv-search-cod.awp?log=" + token + "&inv=" + codeInv + "&code=" + tag;
 
                 URL url = new URL(urlString);
                 connection = (HttpURLConnection) url.openConnection();
@@ -747,7 +758,6 @@ public class LectureFragment extends CommonFragment {
                 String sRes = result.getString("sRes");
 
                 if ("ok".equals(sRes)) {
-                    // Check if the tag matches any of the fields in tab_srch
                     JSONObject tabSrch = result.getJSONObject("tab_srch");
                     String codeImmo = tabSrch.optString("CodeImmo", "");
                     String codeArticle = tabSrch.optString("codeArticle", "");
@@ -761,17 +771,51 @@ public class LectureFragment extends CommonFragment {
                         verifyStatus.setImageResource(R.drawable.ic_not_found);
                         buttonAddDetail.setVisibility(View.VISIBLE);
                         buttonEditDetail.setVisibility(View.INVISIBLE);
+                        
+                        // Gestionnaire pour le bouton AddDetail
+                        buttonAddDetail.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                AddImmoFragment addFragment = AddImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
+                                getActivity().getSupportFragmentManager().beginTransaction()
+                                    .replace(R.id.content_frame, addFragment)
+                                    .addToBackStack(null)
+                                    .commit();
+                            }
+                        });
                     } else {
                         verifyStatus.setImageResource(R.drawable.ic_verified);
                         buttonEditDetail.setVisibility(View.VISIBLE);
                         buttonAddDetail.setVisibility(View.INVISIBLE);
+                        
+                        // Gestionnaire pour le bouton EditDetail
+                        buttonEditDetail.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                EditImmoFragment editFragment = EditImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
+                                getActivity().getSupportFragmentManager().beginTransaction()
+                                    .replace(R.id.content_frame, editFragment)
+                                    .addToBackStack(null)
+                                    .commit();
+                            }
+                        });
                     }
                 } else if ("non trouvé".equals(sRes)) {
                     verifyStatus.setImageResource(R.drawable.ic_not_found);
                     buttonAddDetail.setVisibility(View.VISIBLE);
                     buttonEditDetail.setVisibility(View.INVISIBLE);
+                    
+                    buttonAddDetail.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            AddImmoFragment addFragment = AddImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
+                            getActivity().getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.content_frame, addFragment)
+                                .addToBackStack(null)
+                                .commit();
+                        }
+                    });
                 } else {
-                    // For "error" or any other status
                     verifyStatus.setImageResource(R.drawable.ic_pending);
                     buttonAddDetail.setVisibility(View.INVISIBLE);
                     buttonEditDetail.setVisibility(View.INVISIBLE);
@@ -783,7 +827,6 @@ public class LectureFragment extends CommonFragment {
                 buttonEditDetail.setVisibility(View.INVISIBLE);
             }
 
-            // Force the list item to redraw
             readerListAdapter.notifyDataSetChanged();
         }
     }
