@@ -158,7 +158,7 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
         }
         TextView readerDetailA = (TextView) convertView.findViewById(R.id.reader_detailA);
         TextView readerDetailB = (TextView) convertView.findViewById(R.id.reader_detailB);
-        ImageView verifyStatus = convertView.findViewById(R.id.verify_status);
+        /*ImageView verifyStatus = convertView.findViewById(R.id.verify_status);
         Button buttonAddDetail = convertView.findViewById(R.id.buttonAddDetail);
         Button buttonEditDetail = convertView.findViewById(R.id.buttonEditDetail);
 
@@ -173,7 +173,7 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
         if (buttonEditDetail != null) {
             buttonEditDetail.setVisibility(View.GONE);
             buttonEditDetail.setTag(position);
-        }
+        }*/
 
         if (reader.isConnected() || checkedTextView.isChecked() || select4detail == false) {
             readerDetailA.setText(reader.getDetails());

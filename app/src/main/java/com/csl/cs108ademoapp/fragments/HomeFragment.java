@@ -42,6 +42,15 @@ import com.csl.cs108ademoapp.CustomProgressDialog;
 import com.csl.cs108ademoapp.MainActivity;
 import com.csl.cs108ademoapp.MyForegroundService;
 import com.csl.cs108ademoapp.R;
+import android.content.DialogInterface;
+import android.widget.Toast;
+
+import com.csl.cs108ademoapp.apps.SharedPrefManager;
+import com.csl.cs108ademoapp.app.db.DatabaseCleaner;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import com.csl.cs108ademoapp.app.sync.SynchronizationManager;
+import android.app.ProgressDialog;
 
 public class HomeFragment extends CommonFragment {
     final boolean DEBUG = false;
@@ -59,6 +68,11 @@ public class HomeFragment extends CommonFragment {
         super.onStart();
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateButtonStatesBasedOnMode();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -107,6 +121,112 @@ public class HomeFragment extends CommonFragment {
         if (true || MainActivity.sharedObjects.versionWarningShown == false)
             mHandler.post(runnableConfiguring);
         mHandler.postDelayed(runnableStartService, 1000);
+        updateButtonStatesBasedOnMode();
+    }
+
+    private void updateButtonStatesBasedOnMode() {
+        LinearLayout mainRow2 = getActivity().findViewById(R.id.mainRow2);
+        if (mainRow2 != null) {
+            boolean isOnline = SharedPrefManager.getInstance(getActivity()).isOnlineMode();
+            
+            FrameLayout syncLayout = (FrameLayout) mainRow2.getChildAt(0);
+            FrameLayout clearLayout = (FrameLayout) mainRow2.getChildAt(1);
+            
+            if (isOnline) {
+                syncLayout.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        startSynchronization();
+                    }
+                });
+                
+                clearLayout.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        showClearDatabaseConfirmation();
+                    }
+                });
+                
+                syncLayout.setAlpha(1.0f);
+                clearLayout.setAlpha(1.0f);
+                syncLayout.setClickable(true);
+                clearLayout.setClickable(true);
+            } else {
+                syncLayout.setOnClickListener(null);
+                clearLayout.setOnClickListener(null);
+                syncLayout.setAlpha(0.5f);
+                clearLayout.setAlpha(0.5f);
+                syncLayout.setClickable(false);
+                clearLayout.setClickable(false);
+            }
+        }
+    }
+
+    private void startSynchronization() {
+        final ProgressDialog progressDialog = new ProgressDialog(getActivity());
+        progressDialog.setTitle("Synchronisation");
+        progressDialog.setMessage("Synchronisation en cours...");
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        progressDialog.setMax(100);
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+        
+        SynchronizationManager.getInstance(getActivity()).synchronize(new SynchronizationManager.SyncListener() {
+            @Override
+            public void onProgressUpdate(int progress, String libelle) {
+                progressDialog.setProgress(progress);
+                progressDialog.setMessage(libelle);
+            }
+            
+            @Override
+            public void onComplete(boolean success, String message) {
+                progressDialog.dismiss();
+                Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void showClearDatabaseConfirmation() {
+        new androidx.appcompat.app.AlertDialog.Builder(getActivity())
+            .setTitle("Confirmation")
+            .setMessage("Voulez-vous vraiment supprimer la base?")
+            .setPositiveButton("Oui", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    startDatabaseCleanup();
+                }
+            })
+            .setNegativeButton("Non", null)
+            .show();
+    }
+
+    // Ajoutez cette nouvelle méthode
+    private void startDatabaseCleanup() {
+        // Trouver la ProgressBar dans le layout
+        // Vous devrez ajouter une ProgressBar dans home_layout_new.xml
+        // Pour l'instant, utilisons une ProgressDialog
+        
+        final android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(getActivity());
+        progressDialog.setTitle("Suppression en cours");
+        progressDialog.setMessage("Suppression des données...");
+        progressDialog.setProgressStyle(android.app.ProgressDialog.STYLE_HORIZONTAL);
+        progressDialog.setMax(100);
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+        
+        DatabaseCleaner.clearAllData(getActivity(), new DatabaseCleaner.CleanDatabaseListener() {
+            @Override
+            public void onProgressUpdate(int progress) {
+                progressDialog.setProgress(progress);
+                progressDialog.setMessage("Suppression des données... " + progress + "%");
+            }
+            
+            @Override
+            public void onComplete() {
+                progressDialog.dismiss();
+                // Optional: refresh UI if needed
+            }
+        });
     }
 
     @Override
@@ -276,4 +396,5 @@ public class HomeFragment extends CommonFragment {
     void popupAlert() {
 
     }
+
 }

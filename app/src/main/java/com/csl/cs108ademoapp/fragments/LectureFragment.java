@@ -779,7 +779,7 @@ public class LectureFragment extends CommonFragment {
                                 AddImmoFragment addFragment = AddImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
                                 getActivity().getSupportFragmentManager().beginTransaction()
                                     .replace(R.id.content_frame, addFragment)
-                                    .addToBackStack(null)
+                                    .addToBackStack("add_immo")
                                     .commit();
                             }
                         });
@@ -795,7 +795,7 @@ public class LectureFragment extends CommonFragment {
                                 EditImmoFragment editFragment = EditImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
                                 getActivity().getSupportFragmentManager().beginTransaction()
                                     .replace(R.id.content_frame, editFragment)
-                                    .addToBackStack(null)
+                                    .addToBackStack("edit_immo")
                                     .commit();
                             }
                         });

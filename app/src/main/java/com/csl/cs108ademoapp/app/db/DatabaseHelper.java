@@ -3,13 +3,15 @@ package com.csl.cs108ademoapp.app.db;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-
 import androidx.annotation.Nullable;
+import android.content.ContentValues;
+import android.database.Cursor;
+import com.csl.cs108ademoapp.app.db.models.Utilisateur;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "invImmoDb.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     // Table names
     public static final String TABLE_ARBRE_EMP = "ArbreEmp";
@@ -19,7 +21,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TABLE_CONGF_SYSTEME = "congfSysteme";
     public static final String TABLE_DET_INV_IMMO = "Det_inv_immo";
     public static final String TABLE_EMPLOYEE = "Employee";
-    public static final String TABLE_FOURNISSEUR = "dbo.FOURNISSEUR";
+    public static final String TABLE_FOURNISSEUR = "FOURNISSEUR";
     public static final String TABLE_HISTORIQUE_ECAR_INV = "historique_ecar_inv";
     public static final String TABLE_IMMO = "Immo";
     public static final String TABLE_IMMO_INV_IMAGE = "immo_inv_image";
@@ -33,7 +35,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TABLE_PARAM = "param";
     public static final String TABLE_PROPRIETAIRE = "Proprietaire";
     public static final String TABLE_SOUS_ETAT = "SouSEtat";
-    public static final String TABLE_UTILISATEUR = "dbo.Utilisateur";
+    public static final String TABLE_UTILISATEUR = "Utilisateur";
     public static final String TABLE_VALEURS_ATTRIBUT = "valeursAttribut";
 
     // Create table statements
@@ -673,4 +675,56 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         onCreate(db);
     }
+    
+    public boolean addUser(Utilisateur utilisateur) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        
+        values.put("CodeUtil", utilisateur.CodeUtil);
+        values.put("NomPrenomUtil", utilisateur.NomPrenomUtil);
+        values.put("MotPasse", utilisateur.MotPasse);
+        values.put("login", utilisateur.login);
+        
+        long result = db.insert(TABLE_UTILISATEUR, null, values);
+        db.close();
+        
+        return result != -1;
+    }
+
+    public boolean checkUser(String login, String password) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] columns = {"id"};
+        String selection = "login = ? AND MotPasse = ?";
+        String[] selectionArgs = {login, password};
+        
+        Cursor cursor = db.query(TABLE_UTILISATEUR, columns, selection, selectionArgs, null, null, null);
+        int count = cursor.getCount();
+        cursor.close();
+        db.close();
+        
+        return count > 0;
+    }
+
+    public Utilisateur getUserDetails(String login) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] columns = {"CodeUtil", "NomPrenomUtil", "MotPasse", "login"};
+        String selection = "login = ?";
+        String[] selectionArgs = {login};
+        
+        Cursor cursor = db.query(TABLE_UTILISATEUR, columns, selection, selectionArgs, null, null, null);
+        
+        Utilisateur utilisateur = null;
+        if (cursor.moveToFirst()) {
+            utilisateur = new Utilisateur();
+            utilisateur.CodeUtil = cursor.getString(0);
+            utilisateur.NomPrenomUtil = cursor.getString(1);
+            utilisateur.MotPasse = cursor.getString(2);
+            utilisateur.login = cursor.getString(3);
+        }
+        cursor.close();
+        db.close();
+        
+        return utilisateur;
+    }
+
 }

@@ -249,6 +249,7 @@
             android:layout_weight="1"
             android:layout_height="match_parent"
             style="@style/style_button_font"
+            android:textSize="15sp"
             android:text="@string/start_title" />
 
         <TextView
@@ -270,6 +271,7 @@
             android:layout_weight="1"
             android:layout_height="match_parent"
             style="@style/style_button_font"
+            android:textSize="15sp"
             android:text="Vérifier" />
         
         <Button
@@ -278,6 +280,7 @@
             android:layout_weight="1"
             android:layout_height="match_parent"
             style="@style/style_button_font"
+            android:textSize="15sp"
             android:text="Vider" />
             
         <Button
@@ -286,6 +289,7 @@
             android:layout_weight="1"
             android:layout_height="match_parent"
             style="@style/style_button_font"
+            android:textSize="15sp"
             android:text="Paramétre" />
 
     </LinearLayout>
