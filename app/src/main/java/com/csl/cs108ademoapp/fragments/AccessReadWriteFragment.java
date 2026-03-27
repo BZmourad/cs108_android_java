@@ -62,7 +62,7 @@ public class AccessReadWriteFragment extends CommonFragment {
 
         androidx.appcompat.app.ActionBar actionBar;
         actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-        actionBar.setIcon(R.drawable.dl_access);
+        //actionBar.setIcon(R.drawable.dl_access);
         actionBar.setTitle(R.string.title_activity_readwrite);
 
         selectTag = new SelectTag((Activity)getActivity(), 0);

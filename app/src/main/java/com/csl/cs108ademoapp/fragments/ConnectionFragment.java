@@ -52,7 +52,7 @@ public class ConnectionFragment extends CommonFragment {
         super.onActivityCreated(savedInstanceState);
 
         ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-        actionBar.setIcon(R.drawable.dl_rdl);
+        //actionBar.setIcon(R.drawable.dl_rdl);
         actionBar.setTitle(R.string.title_activity_connection);
 
         TextView textview = (TextView) getActivity().findViewById(R.id.connection_warning);

@@ -57,7 +57,7 @@ public class Test1Fragment extends CommonFragment {
 
         androidx.appcompat.app.ActionBar actionBar;
         actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-        actionBar.setIcon(R.drawable.dl_access);
+        //actionBar.setIcon(R.drawable.dl_access);
         actionBar.setTitle("Test");
 
         startbtn = (Button) getActivity().findViewById(R.id.btnRecord);

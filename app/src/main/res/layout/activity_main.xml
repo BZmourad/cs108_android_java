@@ -15,7 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:layout_alignParentTop="true"
-            android:background="@color/colorBlueDark"
+            android:background="@color/colorBlueDark2"
             app:subtitleTextColor="@color/white"
             app:titleTextColor="@color/white"/>
 
@@ -32,7 +32,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:backgroundTint="@color/colorBlueDark"
+            android:backgroundTint="@color/colorBlueDark2"
             android:background="?attr/colorPrimary"
             app:fabAlignmentMode="end"
             app:fabCradleMargin="8dp"
@@ -54,21 +54,19 @@
                     android:orientation="horizontal"
                     android:gravity="center"
                     android:layout_marginHorizontal="8dp">
-
+                    <!-- Status LEDs remain the same -->
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:gravity="center_horizontal"
                         android:layout_marginEnd="12dp">
-
                         <ImageView
                             android:id="@+id/led_rfid"
                             android:layout_width="16dp"
                             android:layout_height="16dp"
                             android:src="@drawable/led_red"
                             android:contentDescription="@string/rfid_status" />
-
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -84,14 +82,12 @@
                         android:orientation="vertical"
                         android:gravity="center_horizontal"
                         android:layout_marginEnd="12dp">
-
                         <ImageView
                             android:id="@+id/led_internet"
                             android:layout_width="16dp"
                             android:layout_height="16dp"
                             android:src="@drawable/led_red"
                             android:contentDescription="@string/internet_status" />
-
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -107,14 +103,12 @@
                         android:orientation="vertical"
                         android:gravity="center_horizontal"
                         android:layout_marginEnd="12dp">
-
                         <ImageView
                             android:id="@+id/led_server"
                             android:layout_width="16dp"
                             android:layout_height="16dp"
                             android:src="@drawable/led_red"
                             android:contentDescription="@string/server_status" />
-
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -125,12 +119,24 @@
                     </LinearLayout>
                 </LinearLayout>
 
+                <!-- Add username TextView here -->
+                <TextView
+                    android:id="@+id/tv_user_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:paddingEnd="12dp"
+                    android:visibility="gone" />
+
                 <ImageView
                     android:id="@+id/btn_logout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@android:drawable/ic_lock_power_off"
                     android:background="@color/white"
+                    android:padding="8dp"
                     android:contentDescription="@string/logout" />
 
             </LinearLayout>

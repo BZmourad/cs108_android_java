@@ -29,7 +29,7 @@ public class ForegroundFragment extends CommonFragment {
         super.onActivityCreated(savedInstanceState);
 
         ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-        actionBar.setIcon(R.drawable.dl_about);
+        //actionBar.setIcon(R.drawable.dl_about);
         actionBar.setTitle(R.string.title_activity_about);
 
         TextView appVersionView = (TextView) getActivity().findViewById(R.id.appVersion);

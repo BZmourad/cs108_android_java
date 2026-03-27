@@ -51,6 +51,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import com.csl.cs108ademoapp.app.sync.SynchronizationManager;
 import android.app.ProgressDialog;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.widget.FrameLayout;
+import java.util.ArrayList;
+import java.util.List;
+import com.csl.cs108ademoapp.app.db.DatabaseHelper;
 
 public class HomeFragment extends CommonFragment {
     final boolean DEBUG = false;
@@ -87,7 +93,7 @@ public class HomeFragment extends CommonFragment {
 
         if (true && ((AppCompatActivity) getActivity()).getSupportActionBar() != null) {
             ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-            actionBar.setIcon(android.R.drawable.ic_menu_save);
+            //actionBar.setIcon(android.R.drawable.ic_menu_save);
             if (getActivity().getPackageName().contains("cs710ademoapp")) actionBar.setTitle(R.string.title_activity_home_cs710);
             else actionBar.setTitle(R.string.title_activity_home_cs108);
         }
@@ -131,7 +137,8 @@ public class HomeFragment extends CommonFragment {
             
             FrameLayout syncLayout = (FrameLayout) mainRow2.getChildAt(0);
             FrameLayout clearLayout = (FrameLayout) mainRow2.getChildAt(1);
-            
+            FrameLayout testLayout = (FrameLayout) mainRow2.getChildAt(2);
+
             if (isOnline) {
                 syncLayout.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -146,19 +153,284 @@ public class HomeFragment extends CommonFragment {
                         showClearDatabaseConfirmation();
                     }
                 });
+
+                testLayout.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        showDatabaseStats();
+                    }
+                });
                 
                 syncLayout.setAlpha(1.0f);
                 clearLayout.setAlpha(1.0f);
+                testLayout.setAlpha(1.0f);
                 syncLayout.setClickable(true);
                 clearLayout.setClickable(true);
+                testLayout.setClickable(true);
             } else {
                 syncLayout.setOnClickListener(null);
                 clearLayout.setOnClickListener(null);
+                testLayout.setOnClickListener(null);
                 syncLayout.setAlpha(0.5f);
                 clearLayout.setAlpha(0.5f);
+                testLayout.setAlpha(0.5f);
                 syncLayout.setClickable(false);
                 clearLayout.setClickable(false);
+                testLayout.setClickable(false);
             }
+        }
+    }
+
+    private void showDatabaseStats() {
+        // Créer un AlertDialog avec une vue personnalisée
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(getActivity());
+        builder.setTitle("Statistiques de la base de données");
+        
+        // Créer un LinearLayout pour contenir la liste
+        LinearLayout layout = new LinearLayout(getActivity());
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 30, 50, 30);
+        
+        // Ajouter un ScrollView pour permettre le défilement
+        android.widget.ScrollView scrollView = new android.widget.ScrollView(getActivity());
+        scrollView.addView(layout);
+        
+        // Récupérer les statistiques
+        List<DatabaseStats.TableInfo> tableStats = getDatabaseStats();
+        
+        // Ajouter les informations à l'affichage
+        for (DatabaseStats.TableInfo tableInfo : tableStats) {
+            TextView textView = new TextView(getActivity());
+            String displayText;
+            if (tableInfo.hasError) {
+                displayText = tableInfo.number + ". " + tableInfo.tableName + " : ERREUR";
+                textView.setTextColor(0xFFFF0000); // Rouge pour les erreurs
+            } else {
+                displayText = tableInfo.number + ". " + tableInfo.tableName + " : " + tableInfo.count + " enregistrement(s)";
+                textView.setTextColor(0xFF000000); // Noir pour les données normales
+            }
+            textView.setText(displayText);
+            textView.setTextSize(12);
+            textView.setPadding(10, 6, 10, 6);
+            textView.setTypeface(null, android.graphics.Typeface.NORMAL);
+            layout.addView(textView);
+        }
+        
+        // Ajouter une ligne de séparation
+        View separator = new View(getActivity());
+        separator.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1));
+        separator.setBackgroundColor(0xFFDDDDDD);
+        layout.addView(separator);
+        
+        // Calculer le total des enregistrements (sans compter les erreurs)
+        int totalRecords = 0;
+        for (DatabaseStats.TableInfo tableInfo : tableStats) {
+            if (!tableInfo.hasError) {
+                totalRecords += tableInfo.count;
+            }
+        }
+        
+        // Ajouter le total
+        TextView totalView = new TextView(getActivity());
+        totalView.setText("TOTAL : " + totalRecords + " enregistrement(s)");
+        totalView.setTextSize(14);
+        totalView.setPadding(10, 15, 10, 8);
+        totalView.setTextColor(0xFF000000);
+        totalView.setTypeface(null, android.graphics.Typeface.BOLD);
+        layout.addView(totalView);
+        
+        builder.setView(scrollView);
+        builder.setPositiveButton("Fermer", null);
+        builder.show();
+    }
+
+    // Classe interne pour les statistiques
+    private static class DatabaseStats {
+        static class TableInfo {
+            int number;
+            String tableName;
+            int count;
+            boolean hasError;
+            
+            TableInfo(int num, String name, int cnt, boolean error) {
+                number = num;
+                tableName = name;
+                count = cnt;
+                hasError = error;
+            }
+        }
+    }
+    
+    // Méthode pour obtenir les statistiques de la base avec tous les tables
+    private List<DatabaseStats.TableInfo> getDatabaseStats() {
+        List<DatabaseStats.TableInfo> stats = new ArrayList<>();
+        DatabaseHelper dbHelper = new DatabaseHelper(getActivity());
+        SQLiteDatabase db = null;
+        
+        try {
+            db = dbHelper.getReadableDatabase();
+            
+            // Liste de toutes les tables avec leurs numéros et noms
+            TableInfoEntry[] tables = {
+                new TableInfoEntry(1, "ArbreEmp", DatabaseHelper.TABLE_ARBRE_EMP),
+                new TableInfoEntry(2, "ArbreFamile", DatabaseHelper.TABLE_ARBRE_FAMILE),
+                new TableInfoEntry(3, "Attributs", DatabaseHelper.TABLE_ATTRIBUTS),
+                new TableInfoEntry(4, "Attributs_attbset", DatabaseHelper.TABLE_ATTRIBUTS_ATTBSET),
+                new TableInfoEntry(5, "congfSysteme", DatabaseHelper.TABLE_CONGF_SYSTEME),
+                new TableInfoEntry(6, "Det_inv_immo", DatabaseHelper.TABLE_DET_INV_IMMO),
+                new TableInfoEntry(7, "Employee", DatabaseHelper.TABLE_EMPLOYEE),
+                new TableInfoEntry(8, "FOURNISSEUR", DatabaseHelper.TABLE_FOURNISSEUR),
+                new TableInfoEntry(9, "historique_ecar_inv", DatabaseHelper.TABLE_HISTORIQUE_ECAR_INV),
+                new TableInfoEntry(10, "Immo", DatabaseHelper.TABLE_IMMO),
+                new TableInfoEntry(11, "immo_inv_image", DatabaseHelper.TABLE_IMMO_INV_IMAGE),
+                new TableInfoEntry(12, "Inv_attributinvImmo", DatabaseHelper.TABLE_INV_ATTRIBUTINV_IMMO),
+                new TableInfoEntry(13, "Inv_equipe", DatabaseHelper.TABLE_INV_EQUIPE),
+                new TableInfoEntry(14, "Inv_EquipeInventaire", DatabaseHelper.TABLE_INV_EQUIPE_INVENTAIRE),
+                new TableInfoEntry(15, "inv_immo", DatabaseHelper.TABLE_INV_IMMO),
+                new TableInfoEntry(16, "inv_mission", DatabaseHelper.TABLE_INV_MISSION),
+                new TableInfoEntry(17, "Inv_eMombreequipe", DatabaseHelper.TABLE_INV_EMOMBREEQUIPE),
+                new TableInfoEntry(18, "InvImmoAttributValr", DatabaseHelper.TABLE_INV_IMMO_ATTRIBUT_VALR),
+                new TableInfoEntry(19, "param", DatabaseHelper.TABLE_PARAM),
+                new TableInfoEntry(20, "Proprietaire", DatabaseHelper.TABLE_PROPRIETAIRE),
+                new TableInfoEntry(21, "SouSEtat", DatabaseHelper.TABLE_SOUS_ETAT),
+                new TableInfoEntry(22, "Utilisateur", DatabaseHelper.TABLE_UTILISATEUR),
+                new TableInfoEntry(23, "valeursAttribut", DatabaseHelper.TABLE_VALEURS_ATTRIBUT)
+            };
+            
+            for (TableInfoEntry tableEntry : tables) {
+                try {
+                    Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + tableEntry.tableConstant, null);
+                    if (cursor != null && cursor.moveToFirst()) {
+                        int count = cursor.getInt(0);
+                        stats.add(new DatabaseStats.TableInfo(
+                            tableEntry.number,
+                            tableEntry.tableName,
+                            count,
+                            false
+                        ));
+                        cursor.close();
+                    } else {
+                        // Table existe mais cursor est null ou vide
+                        stats.add(new DatabaseStats.TableInfo(
+                            tableEntry.number,
+                            tableEntry.tableName,
+                            0,
+                            true
+                        ));
+                        if (cursor != null) cursor.close();
+                    }
+                } catch (Exception e) {
+                    Log.e("HomeFragment", "Erreur pour la table " + tableEntry.tableName, e);
+                    stats.add(new DatabaseStats.TableInfo(
+                        tableEntry.number,
+                        tableEntry.tableName,
+                        0,
+                        true
+                    ));
+                }
+            }
+            
+        } catch (Exception e) {
+            Log.e("HomeFragment", "Erreur d'accès à la base de données", e);
+            // En cas d'erreur générale, ajouter toutes les tables avec erreur
+            TableInfoEntry[] tables = {
+                new TableInfoEntry(1, "ArbreEmp", DatabaseHelper.TABLE_ARBRE_EMP),
+                new TableInfoEntry(2, "ArbreFamile", DatabaseHelper.TABLE_ARBRE_FAMILE),
+                new TableInfoEntry(3, "Attributs", DatabaseHelper.TABLE_ATTRIBUTS),
+                new TableInfoEntry(4, "Attributs_attbset", DatabaseHelper.TABLE_ATTRIBUTS_ATTBSET),
+                new TableInfoEntry(5, "congfSysteme", DatabaseHelper.TABLE_CONGF_SYSTEME),
+                new TableInfoEntry(6, "Det_inv_immo", DatabaseHelper.TABLE_DET_INV_IMMO),
+                new TableInfoEntry(7, "Employee", DatabaseHelper.TABLE_EMPLOYEE),
+                new TableInfoEntry(8, "FOURNISSEUR", DatabaseHelper.TABLE_FOURNISSEUR),
+                new TableInfoEntry(9, "historique_ecar_inv", DatabaseHelper.TABLE_HISTORIQUE_ECAR_INV),
+                new TableInfoEntry(10, "Immo", DatabaseHelper.TABLE_IMMO),
+                new TableInfoEntry(11, "immo_inv_image", DatabaseHelper.TABLE_IMMO_INV_IMAGE),
+                new TableInfoEntry(12, "Inv_attributinvImmo", DatabaseHelper.TABLE_INV_ATTRIBUTINV_IMMO),
+                new TableInfoEntry(13, "Inv_equipe", DatabaseHelper.TABLE_INV_EQUIPE),
+                new TableInfoEntry(14, "Inv_EquipeInventaire", DatabaseHelper.TABLE_INV_EQUIPE_INVENTAIRE),
+                new TableInfoEntry(15, "inv_immo", DatabaseHelper.TABLE_INV_IMMO),
+                new TableInfoEntry(16, "inv_mission", DatabaseHelper.TABLE_INV_MISSION),
+                new TableInfoEntry(17, "Inv_eMombreequipe", DatabaseHelper.TABLE_INV_EMOMBREEQUIPE),
+                new TableInfoEntry(18, "InvImmoAttributValr", DatabaseHelper.TABLE_INV_IMMO_ATTRIBUT_VALR),
+                new TableInfoEntry(19, "param", DatabaseHelper.TABLE_PARAM),
+                new TableInfoEntry(20, "Proprietaire", DatabaseHelper.TABLE_PROPRIETAIRE),
+                new TableInfoEntry(21, "SouSEtat", DatabaseHelper.TABLE_SOUS_ETAT),
+                new TableInfoEntry(22, "Utilisateur", DatabaseHelper.TABLE_UTILISATEUR),
+                new TableInfoEntry(23, "valeursAttribut", DatabaseHelper.TABLE_VALEURS_ATTRIBUT)
+            };
+            for (TableInfoEntry tableEntry : tables) {
+                stats.add(new DatabaseStats.TableInfo(
+                    tableEntry.number,
+                    tableEntry.tableName,
+                    0,
+                    true
+                ));
+            }
+        } finally {
+            if (db != null && db.isOpen()) {
+                db.close();
+            }
+        }
+        
+        return stats;
+    }
+
+    // Classe utilitaire pour stocker les informations des tables
+    private static class TableInfoEntry {
+        int number;
+        String tableName;
+        String tableConstant;
+        
+        TableInfoEntry(int num, String name, String constant) {
+            number = num;
+            tableName = name;
+            tableConstant = constant;
+        }
+    }
+
+    // Méthode utilitaire pour obtenir un nom d'affichage plus lisible
+    private String getDisplayTableName(String tableName) {
+        switch (tableName) {
+            case DatabaseHelper.TABLE_ARBRE_EMP:
+                return "Emplacements";
+            case DatabaseHelper.TABLE_PROPRIETAIRE:
+                return "Propriétaires";
+            case DatabaseHelper.TABLE_EMPLOYEE:
+                return "Employés";
+            case DatabaseHelper.TABLE_FOURNISSEUR:
+                return "Fournisseurs";
+            case DatabaseHelper.TABLE_SOUS_ETAT:
+                return "États";
+            case DatabaseHelper.TABLE_ATTRIBUTS:
+                return "Attributs";
+            case DatabaseHelper.TABLE_VALEURS_ATTRIBUT:
+                return "Valeurs attributs";
+            case DatabaseHelper.TABLE_ATTRIBUTS_ATTBSET:
+                return "Attributs set";
+            case DatabaseHelper.TABLE_UTILISATEUR:
+                return "Utilisateurs";
+            case DatabaseHelper.TABLE_IMMO:
+                return "Immobilisations";
+            case DatabaseHelper.TABLE_INV_IMMO:
+                return "Inventaires";
+            case DatabaseHelper.TABLE_INV_ATTRIBUTINV_IMMO:
+                return "Attributs inventaire";
+            case DatabaseHelper.TABLE_INV_EQUIPE:
+                return "Équipes";
+            case DatabaseHelper.TABLE_INV_EMOMBREEQUIPE:
+                return "Membres équipes";
+            case DatabaseHelper.TABLE_INV_MISSION:
+                return "Missions";
+            case DatabaseHelper.TABLE_DET_INV_IMMO:
+                return "Détails inventaire";
+            case DatabaseHelper.TABLE_HISTORIQUE_ECAR_INV:
+                return "Historique écarts";
+            case DatabaseHelper.TABLE_IMMO_INV_IMAGE:
+                return "Images";
+            case DatabaseHelper.TABLE_INV_IMMO_ATTRIBUT_VALR:
+                return "Valeurs attributs inventaire";
+            default:
+                return tableName;
         }
     }
 
@@ -200,7 +472,6 @@ public class HomeFragment extends CommonFragment {
             .show();
     }
 
-    // Ajoutez cette nouvelle méthode
     private void startDatabaseCleanup() {
         // Trouver la ProgressBar dans le layout
         // Vous devrez ajouter une ProgressBar dans home_layout_new.xml

@@ -78,7 +78,7 @@ public class DirectWedgeFragment extends CommonFragment {
         if (getActivity().getPackageName().contains("cs710awedgeapp")) {
             androidx.appcompat.app.ActionBar actionBar;
             actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-            actionBar.setIcon(R.drawable.dl_access);
+            //actionBar.setIcon(R.drawable.dl_access);
             ColorDrawable colorDrawable = new ColorDrawable(getResources().getColor(R.color.colorPrimary));
             actionBar.setBackgroundDrawable(colorDrawable);
             actionBar.setTitle(R.string.app_ime_simplewedge1);
@@ -87,7 +87,7 @@ public class DirectWedgeFragment extends CommonFragment {
             //actionBar.setTitle(strTitle);
         } else { //if (getActivity().getPackageName().contains("cs710ademoapp")) {
             ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-            actionBar.setIcon(R.drawable.dl_inv);
+            //actionBar.setIcon(R.drawable.dl_inv);
             actionBar.setTitle("Wedge");
 
             tableRow1.setVisibility(View.GONE);

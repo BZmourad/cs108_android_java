@@ -384,6 +384,142 @@ public class SettingAdminFragment extends CommonFragment {
         }
         if (sameCheck == false) MainActivity.csLibrary4A.setSameCheck(false);
         mHandler.post(updateRunnable);
+
+                // Hide ALL fields first, then show only required ones
+
+        // Hide Battery level format
+        View batteryView = getActivity().findViewById(R.id.settingAdminBattery);
+        if (batteryView != null && batteryView.getParent() != null) {
+            ((View) batteryView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide Rssi unit
+        View rssiView = getActivity().findViewById(R.id.settingAdminRssi);
+        if (rssiView != null && rssiView.getParent() != null) {
+            ((View) rssiView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide Cycle delay
+        View cycleDelayView = getActivity().findViewById(R.id.settingAdminCycleDelay);
+        if (cycleDelayView != null && cycleDelayView.getParent() != null) {
+            ((View) cycleDelayView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide Trigger reporting row
+        View triggerRow = getActivity().findViewById(R.id.settingAdminTriggerReportingRow);
+        if (triggerRow != null) {
+            triggerRow.setVisibility(View.GONE);
+        }
+
+        // Hide Beep count (keep only the checkbox)
+        View beepRow = (View) getActivity().findViewById(R.id.settingAdminBeepCount).getParent();
+        if (beepRow != null) {
+            ((View) beepRow).setVisibility(View.GONE);
+        }
+
+        // Hide Vibration Time (keep only the checkbox)
+        View vibrateTimeRow = (View) getActivity().findViewById(R.id.settingAdminVibrateTime).getParent();
+        if (vibrateTimeRow != null) {
+            ((View) vibrateTimeRow).setVisibility(View.GONE);
+        }
+
+        // Hide Saving format
+        View savingFormatView = getActivity().findViewById(R.id.settingAdminSavingFormat);
+        if (savingFormatView != null && savingFormatView.getParent() != null) {
+            ((View) savingFormatView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide CSV column selection layout
+        LinearLayout csvLayout = (LinearLayout) getActivity().findViewById(R.id.settingAdminCSVColumnSelectLayout);
+        if (csvLayout != null) {
+            csvLayout.setVisibility(View.GONE);
+        }
+
+        // Hide cloud saving options
+        View cloudRow = (View) getActivity().findViewById(R.id.settingAdminToCloudEnable).getParent();
+        if (cloudRow != null) {
+            ((View) cloudRow).setVisibility(View.GONE);
+        }
+
+        // Hide Cloud address
+        View serverRow = (View) getActivity().findViewById(R.id.settingAdminServer).getParent();
+        if (serverRow != null) {
+            ((View) serverRow).setVisibility(View.GONE);
+        }
+
+        // Hide Cloud connect timeout
+        View timeoutRow = (View) getActivity().findViewById(R.id.settingAdminServerConnectTimeout).getParent();
+        if (timeoutRow != null) {
+            ((View) timeoutRow).setVisibility(View.GONE);
+        }
+
+        // Hide CSL cloud button
+        Button cslButton = (Button) getActivity().findViewById(R.id.settingAdminCSLServer);
+        if (cslButton != null) {
+            cslButton.setVisibility(View.GONE);
+        }
+
+        // Hide Foreground Service layout
+        LinearLayout foregroundLayout = (LinearLayout) getActivity().findViewById(R.id.settingAdminForegroundLayout);
+        if (foregroundLayout != null) {
+            foregroundLayout.setVisibility(View.GONE);
+        }
+
+        // Hide Impinj verification section
+        View impinjServerView = getActivity().findViewById(R.id.settingAdminServerImpinj);
+        if (impinjServerView != null && impinjServerView.getParent() != null) {
+            ((View) impinjServerView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide Barcode section
+        View barcodeButton = getActivity().findViewById(R.id.settingAdminBarcodeResetButton);
+        if (barcodeButton != null && barcodeButton.getParent() != null) {
+            ((View) barcodeButton.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide Reset to Default button
+        View resetButton = getActivity().findViewById(R.id.settingAdminReaderResetButton);
+        if (resetButton != null && resetButton.getParent() != null) {
+            ((View) resetButton.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide debugging checkbox
+        View debugCheckbox = getActivity().findViewById(R.id.settingAdminDebugEnable);
+        if (debugCheckbox != null && debugCheckbox.getParent() != null) {
+            ((View) debugCheckbox.getParent()).setVisibility(View.GONE);
+        }
+
+        // Ensure required fields are visible:
+        // 1. Reader models - settingAdminReaderModel
+        View readerModelRow = (View) getActivity().findViewById(R.id.settingAdminReaderModel).getParent();
+        if (readerModelRow != null) {
+            ((View) readerModelRow).setVisibility(View.VISIBLE);
+        }
+
+        // 2. Reader name - settingAdminDeviceName
+        View readerNameRow = (View) getActivity().findViewById(R.id.settingAdminDeviceName).getParent();
+        if (readerNameRow != null) {
+            ((View) readerNameRow).setVisibility(View.VISIBLE);
+        }
+
+        // 3. enable beeping - settingAdminInventoryBeep
+        View beepCheckboxRow = (View) getActivity().findViewById(R.id.settingAdminInventoryBeep).getParent();
+        if (beepCheckboxRow != null) {
+            ((View) beepCheckboxRow).setVisibility(View.VISIBLE);
+        }
+
+        // 4. enable vibration - settingAdminInventoryVibrate
+        View vibrateCheckboxRow = (View) getActivity().findViewById(R.id.settingAdminInventoryVibrate).getParent();
+        if (vibrateCheckboxRow != null) {
+            ((View) vibrateCheckboxRow).setVisibility(View.VISIBLE);
+        }
+
+        // 5. vibrate for - settingAdminVibrateMode (this is a spinner, keep the whole row)
+        View vibrateModeRow = (View) getActivity().findViewById(R.id.settingAdminVibrateMode).getParent();
+        if (vibrateModeRow != null) {
+            ((View) vibrateModeRow).setVisibility(View.VISIBLE);
+        }
+        
     }
 
     @Override

@@ -693,7 +693,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public boolean checkUser(String login, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] columns = {"id"};
+        String[] columns = {"CodeUtil"};
         String selection = "login = ? AND MotPasse = ?";
         String[] selectionArgs = {login, password};
         

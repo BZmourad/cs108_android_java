@@ -74,7 +74,7 @@ public class DrawerListContent {
 
     static {
         // Add items.
-        addItem(new DrawerItem("0", "About", R.drawable.dl_about));
+        /*addItem(new DrawerItem("0", "About", R.drawable.dl_about));
         addItem(new DrawerItem("1", "Connect", R.drawable.dl_rdl));
         addItem(new DrawerItem("2", "Inventory", R.drawable.dl_inv));
         addItem(new DrawerItem("3", "Geiger Search", R.drawable.dl_loc));
@@ -102,7 +102,7 @@ public class DrawerListContent {
         addItem(new DrawerItem("23", "Register Tag", R.drawable.dl_rr));
         addItem(new DrawerItem("24", "Large sized memory read/write", R.drawable.dl_rr));
         addItem(new DrawerItem("25", "Wedge", R.drawable.dl_rr));
-        addItem(new DrawerItem("26", "Direct Wedge", R.drawable.dl_rr));
+        addItem(new DrawerItem("26", "Direct Wedge", R.drawable.dl_rr));*/
     }
 
     private static void addItem(DrawerItem item) {

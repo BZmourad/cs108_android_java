@@ -69,7 +69,7 @@ public class InventoryRfidSearchFragment extends CommonFragment {
         if (!isTabbed) {
             androidx.appcompat.app.ActionBar actionBar;
             actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-            actionBar.setIcon(R.drawable.dl_loc);
+            //actionBar.setIcon(R.drawable.dl_loc);
             actionBar.setTitle(R.string.title_activity_geiger);
         }
 

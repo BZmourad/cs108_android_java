@@ -266,15 +266,139 @@ public class SettingOperateFragment extends CommonFragment {
             }
         });
 
-        button1 = (Button) getActivity().findViewById(R.id.settingSaveButtonOperate1);
+        /*button1 = (Button) getActivity().findViewById(R.id.settingSaveButtonOperate1);
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 sameCheck = false; settingUpdate1();
             }
-        });
+        });*/
 
         mHandler.post(updateRunnable);
+        // Hide ALL fields first, then show only required ones
+        // Hide Regulatory region
+        View regionView = getActivity().findViewById(R.id.settingOperateRegulatoryRegion);
+        if (regionView != null && regionView.getParent() != null) {
+            ((View) regionView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide Frequency order
+        View freqView = getActivity().findViewById(R.id.settingOperateFrequencyOrder);
+        if (freqView != null && freqView.getParent() != null) {
+            ((View) freqView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide Fixed channel
+        View channelView = getActivity().findViewById(R.id.settingOperateChannel);
+        if (channelView != null && channelView.getParent() != null) {
+            ((View) channelView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide Port Enable (if not needed - but keep if you need antenna selection)
+        // Uncomment the following if you want to hide it:
+        /*
+        View portEnableView = getActivity().findViewById(R.id.settingOperatePortEnable);
+        if (portEnableView != null && portEnableView.getParent() != null) {
+            ((View) portEnableView.getParent()).setVisibility(View.GONE);
+        }
+        */
+
+        // Hide Tag Delay (Compact Inventory delay time)
+        View tagDelayView = getActivity().findViewById(R.id.settingOperateTagDelay);
+        if (tagDelayView != null && tagDelayView.getParent() != null) {
+            ((View) tagDelayView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide IntraPacket delay
+        View intraPkView = getActivity().findViewById(R.id.settingOperateIntraPkDelay);
+        if (intraPkView != null && intraPkView.getParent() != null) {
+            ((View) intraPkView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide DupDelay
+        View dupDelayView = getActivity().findViewById(R.id.settingOperateDupDelay);
+        if (dupDelayView != null && dupDelayView.getParent() != null) {
+            ((View) dupDelayView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide Session
+        View sessionView = getActivity().findViewById(R.id.settingOperateSession);
+        if (sessionView != null && sessionView.getParent() != null) {
+            ((View) sessionView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide Target
+        View targetView = getActivity().findViewById(R.id.settingOperateTarget);
+        if (targetView != null && targetView.getParent() != null) {
+            ((View) targetView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide Tag Focus
+        View tagFocusView = getActivity().findViewById(R.id.settingOperateTagFocus);
+        if (tagFocusView != null && tagFocusView.getParent() != null) {
+            ((View) tagFocusView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide Fast ID
+        View fastIdView = getActivity().findViewById(R.id.settingOperateFastId);
+        if (fastIdView != null && fastIdView.getParent() != null) {
+            ((View) fastIdView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide Algorithm
+        View algoView = getActivity().findViewById(R.id.settingOperateAlgorithmToUse);
+        if (algoView != null && algoView.getParent() != null) {
+            ((View) algoView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide Retry
+        View retryView = getActivity().findViewById(R.id.settingOperateRetry);
+        if (retryView != null && retryView.getParent() != null) {
+            ((View) retryView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide Profile/Reader mode
+        View profileView = getActivity().findViewById(R.id.settingOperateProfile);
+        if (profileView != null && profileView.getParent() != null) {
+            ((View) profileView.getParent()).setVisibility(View.GONE);
+        }
+
+        // Hide Gain control section
+        LinearLayout gainLayout = (LinearLayout) getActivity().findViewById(R.id.settingOperateGainControl);
+        if (gainLayout != null) {
+            gainLayout.setVisibility(View.GONE);
+        }
+
+        // Ensure required fields are visible:
+        // 1. power level(1-16) - settingOperatePortChannel
+        View portChannelRow = getActivity().findViewById(R.id.settingOperatePortChannelRow);
+        if (portChannelRow != null) {
+            portChannelRow.setVisibility(View.VISIBLE);
+        }
+
+        // 2. Power - settingOperatePower
+        View powerRow = (View) getActivity().findViewById(R.id.settingOperatePower).getParent();
+        if (powerRow != null) {
+            ((View) powerRow).setVisibility(View.VISIBLE);
+        }
+
+        // 3. Dwell time - settingOperatePortDwell
+        View dwellRow = getActivity().findViewById(R.id.settingOperatePortDwellRow);
+        if (dwellRow != null) {
+            dwellRow.setVisibility(View.VISIBLE);
+        }
+
+        // 4. Tag population - settingOperatePopulation
+        View populationRow = (View) getActivity().findViewById(R.id.settingOperatePopulation).getParent();
+        if (populationRow != null) {
+            ((View) populationRow).setVisibility(View.VISIBLE);
+        }
+
+        // 5. Q - settingOperateQValue
+        View qRow = (View) getActivity().findViewById(R.id.settingOperateQValue).getParent();
+        if (qRow != null) {
+            ((View) qRow).setVisibility(View.VISIBLE);
+        }
     }
 
     void settingUpdate1() {

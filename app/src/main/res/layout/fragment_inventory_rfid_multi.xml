@@ -211,6 +211,7 @@
                 android:id="@+id/inventoryRfidRunTime1"
                 android:layout_width="0dp"
                 android:layout_weight="1"
+                android:visibility="gone"
                 android:layout_height="wrap_content"
                 android:textAlignment="textStart" />
 
@@ -219,13 +220,14 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:visibility="visible"
+                android:visibility="gone"
                 android:textColor="#ff0000"
                 android:text="Filter On" />
 
             <TextView
                 android:id="@+id/inventoryRfidVoltageLevel1"
                 android:layout_width="wrap_content"
+                android:visibility="gone"
                 android:layout_height="wrap_content" />
         </LinearLayout>
     </LinearLayout>
@@ -241,6 +243,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
+            android:visibility="gone"
             style="@style/style_button_font_2" />
 
         <Button
@@ -257,6 +260,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
+            android:visibility="gone"
             style="@style/style_button_font_2" />
     </LinearLayout>
     <LinearLayout

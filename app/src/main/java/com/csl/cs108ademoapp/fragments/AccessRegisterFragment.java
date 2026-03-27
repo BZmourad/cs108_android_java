@@ -67,7 +67,7 @@ public class AccessRegisterFragment extends CommonFragment {
         super.onActivityCreated(savedInstanceState);
 
         ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-        actionBar.setIcon(R.drawable.dl_access);
+        //actionBar.setIcon(R.drawable.dl_access);
         actionBar.setTitle(R.string.title_activity_registertag);
 
         customPopupWindow = new CustomPopupWindow(mContext);

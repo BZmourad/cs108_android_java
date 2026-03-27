@@ -47,6 +47,10 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.widget.EditText;
 import com.csl.cs108ademoapp.SettingTask;
+import com.csl.cs108ademoapp.app.db.DatabaseHelper;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.database.Cursor;
 
 public class LectureFragment extends CommonFragment {
     final private boolean bAdd2End = false;
@@ -250,7 +254,7 @@ public class LectureFragment extends CommonFragment {
         if (bMultiBankInventory | bctesiusInventory) {
             ActionBar actionBar;
             actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-            actionBar.setIcon(R.drawable.dl_inv);
+            //actionBar.setIcon(R.drawable.dl_inv);
             if (bMultiBankInventory) actionBar.setTitle(R.string.title_activity_inventoryRfidMulti);
             else if (bctesiusInventory) {
                 if (mDid.matches("E2003")) actionBar.setTitle("Alien");
@@ -281,7 +285,7 @@ public class LectureFragment extends CommonFragment {
             }
         } else if (bMultiBankInventory == false) {
             checkBoxFilterByEpc = (CheckBox) getActivity().findViewById(R.id.accessInventoryFilterByEpc);
-            checkBoxFilterByEpc.setVisibility(View.VISIBLE);
+            //checkBoxFilterByEpc.setVisibility(View.VISIBLE);
         }
         checkBoxFilterByProtect = (CheckBox) getActivity().findViewById(R.id.accessInventoryFilterByProtect);
         editTextProtectPassword = (EditText) getActivity().findViewById(R.id.accessInventoryProtectPassword);
@@ -340,7 +344,7 @@ public class LectureFragment extends CommonFragment {
         rfidVoltageLevel = (TextView) getActivity().findViewById(R.id.inventoryRfidVoltageLevel1);
         TextView rfidFilterOn = (TextView) getActivity().findViewById(R.id.inventoryRfidFilterOn1);
         if (mDid != null || (MainActivity.csLibrary4A.getSelectEnable() == false && MainActivity.csLibrary4A.getInvMatchEnable() == false && MainActivity.csLibrary4A.getRssiFilterEnable() == false))
-            rfidFilterOn.setVisibility(View.INVISIBLE);
+            rfidFilterOn.setVisibility(View.GONE);
         rfidYieldView = (TextView) getActivity().findViewById(R.id.inventoryRfidYield1);
         rfidRateView = (TextView) getActivity().findViewById(R.id.inventoryRfidRate1);
         button = (Button) getActivity().findViewById(R.id.inventoryRfidButton1);
@@ -354,7 +358,11 @@ public class LectureFragment extends CommonFragment {
         verifyRfidButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                verifyTagsList();
+                if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
+                    verifyTagsList();
+                } else {
+                    verifyTagsListOffline();
+                }
             }
         });
         Button clearListButton = (Button) getActivity().findViewById(R.id.clearListButton);
@@ -677,6 +685,96 @@ public class LectureFragment extends CommonFragment {
         }
     }
 
+    private void verifyTagsListOffline() {
+        DatabaseHelper dbHelper = new DatabaseHelper(ctx);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        
+        if (readerListAdapter != null) {
+            for (int i = 0; i < readerListAdapter.getCount(); i++) {
+                ReaderDevice device = readerListAdapter.getItem(i);
+                if (device != null) {
+                    String tag = device.getAddress();
+                    MainActivity.csLibrary4A.appendToLogView("N° " + i + ": tag: " + tag);
+                    
+                    // Query to check if the tag exists in the database
+                    String query = "SELECT COUNT(*) as nb FROM Det_inv_immo WHERE Det_inv_immo.CodeInventaire = ? AND "+
+                        "(Det_inv_immo.CodeImmo = ? OR Det_inv_immo.ancienCode_Corr = ? OR Det_inv_immo.NumSerie_Corr = ? OR Det_inv_immo.codeBarre_Corr = ?)";
+                    
+                    Cursor cursor = null;
+                    try {
+                        cursor = db.rawQuery(query, new String[]{codeInv, tag, tag, tag, tag});
+                        if (cursor != null && cursor.moveToFirst()) {
+                            int count = cursor.getInt(cursor.getColumnIndexOrThrow("nb"));
+                            boolean exists = count > 0;
+                            
+                            // Update the verification status
+                            updateVerificationStatusOffline(i, tag, exists);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        // Update with error status
+                        updateVerificationStatusOffline(i, tag, false);
+                    } finally {
+                        if (cursor != null) {
+                            cursor.close();
+                        }
+                    }
+                }
+            }
+        }
+        db.close();
+    }
+
+    private void updateVerificationStatusOffline(int position, String tag, boolean exists) {
+        View listItemView = getListView().getChildAt(position - getListView().getFirstVisiblePosition());
+        
+        if (listItemView != null) {
+            ImageView verifyStatus = listItemView.findViewById(R.id.verify_status);
+            ImageButton buttonEditDetail = listItemView.findViewById(R.id.buttonEditDetail);
+            ImageButton buttonAddDetail = listItemView.findViewById(R.id.buttonAddDetail);
+            
+            if (exists) {
+                // Tag found in offline database
+                verifyStatus.setImageResource(R.drawable.ic_verified);
+                verifyStatus.setVisibility(View.VISIBLE);
+                buttonEditDetail.setVisibility(View.VISIBLE);
+                buttonAddDetail.setVisibility(View.GONE);
+                
+                // Set click listener for Edit button
+                buttonEditDetail.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        EditImmoFragment editFragment = EditImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
+                        getActivity().getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.content_frame, editFragment)
+                            .addToBackStack("edit_immo")
+                            .commit();
+                    }
+                });
+            } else {
+                // Tag not found in offline database
+                verifyStatus.setImageResource(R.drawable.ic_not_found);
+                verifyStatus.setVisibility(View.VISIBLE);
+                buttonAddDetail.setVisibility(View.VISIBLE);
+                buttonEditDetail.setVisibility(View.GONE);
+                
+                // Set click listener for Add button
+                buttonAddDetail.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        AddImmoFragment addFragment = AddImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
+                        getActivity().getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.content_frame, addFragment)
+                            .addToBackStack("add_immo")
+                            .commit();
+                    }
+                });
+            }
+            
+            readerListAdapter.notifyDataSetChanged();
+        }
+    }
+
     // Update the VerifyTagTask class to handle the new response structure
     private class VerifyTagTask extends AsyncTask<Void, Void, JSONObject> {
         private int position;
@@ -769,8 +867,9 @@ public class LectureFragment extends CommonFragment {
                     if ("".equals(codeImmo) && "".equals(codeArticle) && "".equals(codeBarreInv) &&
                             "".equals(numSerieInv) && "".equals(ancienCodeInv) && "".equals(lib)) {
                         verifyStatus.setImageResource(R.drawable.ic_not_found);
+                        verifyStatus.setVisibility(View.VISIBLE);
                         buttonAddDetail.setVisibility(View.VISIBLE);
-                        buttonEditDetail.setVisibility(View.INVISIBLE);
+                        buttonEditDetail.setVisibility(View.GONE);
                         
                         // Gestionnaire pour le bouton AddDetail
                         buttonAddDetail.setOnClickListener(new View.OnClickListener() {
@@ -785,8 +884,9 @@ public class LectureFragment extends CommonFragment {
                         });
                     } else {
                         verifyStatus.setImageResource(R.drawable.ic_verified);
+                        verifyStatus.setVisibility(View.VISIBLE);
                         buttonEditDetail.setVisibility(View.VISIBLE);
-                        buttonAddDetail.setVisibility(View.INVISIBLE);
+                        buttonAddDetail.setVisibility(View.GONE);
                         
                         // Gestionnaire pour le bouton EditDetail
                         buttonEditDetail.setOnClickListener(new View.OnClickListener() {
@@ -802,8 +902,9 @@ public class LectureFragment extends CommonFragment {
                     }
                 } else if ("non trouvé".equals(sRes)) {
                     verifyStatus.setImageResource(R.drawable.ic_not_found);
+                    verifyStatus.setVisibility(View.VISIBLE);
                     buttonAddDetail.setVisibility(View.VISIBLE);
-                    buttonEditDetail.setVisibility(View.INVISIBLE);
+                    buttonEditDetail.setVisibility(View.GONE);
                     
                     buttonAddDetail.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -817,14 +918,16 @@ public class LectureFragment extends CommonFragment {
                     });
                 } else {
                     verifyStatus.setImageResource(R.drawable.ic_pending);
-                    buttonAddDetail.setVisibility(View.INVISIBLE);
-                    buttonEditDetail.setVisibility(View.INVISIBLE);
+                    verifyStatus.setVisibility(View.GONE);
+                    buttonAddDetail.setVisibility(View.GONE);
+                    buttonEditDetail.setVisibility(View.GONE);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 verifyStatus.setImageResource(R.drawable.ic_pending);
-                buttonAddDetail.setVisibility(View.INVISIBLE);
-                buttonEditDetail.setVisibility(View.INVISIBLE);
+                verifyStatus.setVisibility(View.GONE);
+                buttonAddDetail.setVisibility(View.GONE);
+                buttonEditDetail.setVisibility(View.GONE);
             }
 
             readerListAdapter.notifyDataSetChanged();

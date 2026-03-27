@@ -42,7 +42,7 @@ public class ImpinjM775Fragment extends CommonFragment {
         super.onActivityCreated(savedInstanceState);
 
         actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-        actionBar.setIcon(R.drawable.dl_inv);
+        //actionBar.setIcon(R.drawable.dl_inv);
         actionBar.setTitle(R.string.title_activity_m775);
 
         TabLayout tabLayout = (TabLayout) getActivity().findViewById(R.id.OperationsTabLayout);

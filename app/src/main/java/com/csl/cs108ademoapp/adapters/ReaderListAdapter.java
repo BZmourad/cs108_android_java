@@ -96,7 +96,7 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
 
         if (select4Rssi) {
             TextView rssiTextView = (TextView) convertView.findViewById(R.id.reader_rssi);
-            rssiTextView.setVisibility(View.VISIBLE);
+            //rssiTextView.setVisibility(View.VISIBLE);
             double rssiValue = reader.getRssi();
             if (MainActivity.csLibrary4A.getRssiDisplaySetting() != 0 && rssiValue > 0)
                 rssiValue -= MainActivity.csLibrary4A.dBuV_dBm_constant;
@@ -105,14 +105,14 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
 
         if (select4Extra1) {
             TextView portTextView = (TextView) convertView.findViewById(R.id.reader_extra1);
-            portTextView.setVisibility(View.VISIBLE);
+            //portTextView.setVisibility(View.VISIBLE);
             int portValue = reader.getPort() + 1;
             portTextView.setText(String.valueOf(portValue));
         }
 
         if (select4Extra2) {
             TextView portTextView = (TextView) convertView.findViewById(R.id.reader_extra2);
-            portTextView.setVisibility(View.VISIBLE);
+            //portTextView.setVisibility(View.VISIBLE);
             int codeStatus = reader.getStatus();
             int codeSensor = reader.getCodeSensor(); int codeRssi = reader.getCodeRssi(); float codeTempC = reader.getCodeTempC();
             String brand = reader.getBrand();

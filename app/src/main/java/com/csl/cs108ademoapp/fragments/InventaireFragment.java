@@ -17,7 +17,7 @@ import androidx.fragment.app.FragmentManager;
 
 import com.csl.cs108ademoapp.R;
 import com.csl.cs108ademoapp.apps.SharedPrefManager;
-import com.csl.cs108ademoapp.db.DatabaseHelper;
+import com.csl.cs108ademoapp.app.db.DatabaseHelper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -142,11 +142,11 @@ public class InventaireFragment extends CommonFragment {
                         "inv_mission.codemission AS codemission, " +
                         "inv_mission.Codeinv AS codeinv, " +
                         "inv_mission.Description AS Description, " +
-                        "Inv_Mombreequipe.codeEquipe AS equipe " +
-                        "FROM inv_mission, Inv_Mombreequipe " +
-                        "WHERE inv_mission.Codeinv = Inv_Mombreequipe.Codeinv " +
+                        "Inv_eMombreequipe.codeEquipe AS equipe " +
+                        "FROM inv_mission, Inv_eMombreequipe " +
+                        "WHERE inv_mission.Codeinv = Inv_eMombreequipe.Codeinv " +
                         "AND inv_mission.etatmission = 'en cours' " +
-                        "AND Inv_Mombreequipe.CodeUtil = ?";
+                        "AND Inv_eMombreequipe.CodeUtil = ?";
 
                 List<InventaireItem> newItems = new ArrayList<>();
 

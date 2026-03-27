@@ -50,7 +50,7 @@ public class InventoryFragment extends CommonFragment {
         super.onActivityCreated(savedInstanceState);
 
         actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-        actionBar.setIcon(R.drawable.dl_inv);
+        //actionBar.setIcon(R.drawable.dl_inv);
         actionBar.setTitle(R.string.title_activity_inventory);
 
         TabLayout tabLayout = (TabLayout) getActivity().findViewById(R.id.OperationsTabLayout);

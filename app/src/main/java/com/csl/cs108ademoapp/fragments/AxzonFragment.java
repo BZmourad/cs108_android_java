@@ -56,7 +56,7 @@ public class AxzonFragment extends CommonFragment {
         super.onActivityCreated(savedInstanceState);
 
         actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-        actionBar.setIcon(R.drawable.dl_inv);
+        //actionBar.setIcon(R.drawable.dl_inv);
         MainActivity.csLibrary4A.appendToLog("MainActivity.mDid = " + MainActivity.mDid);
         if (false) actionBar.setTitle(R.string.title_activity_axzon);
         else {

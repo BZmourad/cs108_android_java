@@ -119,7 +119,7 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
         if (true) {
             androidx.appcompat.app.ActionBar actionBar;
             actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-            actionBar.setIcon(R.drawable.dl_inv);
+            //actionBar.setIcon(R.drawable.dl_inv);
             actionBar.setTitle(R.string.title_activity_simpleInventory);
         }
 
@@ -164,7 +164,7 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
         rfidRunTime = (TextView) getActivity().findViewById(R.id.simpleInventoryRfidRunTime1);
         TextView rfidFilterOn = (TextView) getActivity().findViewById(R.id.SimpleInventoryRfidFilterOn1);
         if (MainActivity.csLibrary4A.getSelectEnable() == false && MainActivity.csLibrary4A.getInvMatchEnable() == false && MainActivity.csLibrary4A.getRssiFilterEnable() == false )
-            rfidFilterOn.setVisibility(View.INVISIBLE);
+            rfidFilterOn.setVisibility(View.GONE);
 
         rfidYieldView = (TextView) getActivity().findViewById(R.id.simpleInventoryRfidYield1);
         rfidRateView = (TextView) getActivity().findViewById(R.id.simpleInventoryRfidRate1);

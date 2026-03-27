@@ -163,7 +163,7 @@ public class RfidLectureFragment extends CommonFragment {
         if (bMultiBankInventory | bctesiusInventory) {
             ActionBar actionBar;
             actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-            actionBar.setIcon(R.drawable.dl_inv);
+            //actionBar.setIcon(R.drawable.dl_inv);
             if (bMultiBankInventory) actionBar.setTitle(R.string.title_activity_inventoryRfidMulti);
             else if (bctesiusInventory) {
                 if (mDid.matches("E2003")) actionBar.setTitle("Alien");
@@ -195,7 +195,7 @@ public class RfidLectureFragment extends CommonFragment {
             }
         } else if (bMultiBankInventory == false) {
             checkBoxFilterByEpc = (CheckBox) getActivity().findViewById(R.id.accessInventoryFilterByEpc);
-            checkBoxFilterByEpc.setVisibility(View.VISIBLE);
+            //checkBoxFilterByEpc.setVisibility(View.VISIBLE);
         }
 
         checkBoxFilterByProtect = (CheckBox) getActivity().findViewById(R.id.accessInventoryFilterByProtect);
@@ -261,7 +261,7 @@ public class RfidLectureFragment extends CommonFragment {
         rfidVoltageLevel = (TextView) getActivity().findViewById(R.id.inventoryRfidVoltageLevel1);
         TextView rfidFilterOn = (TextView) getActivity().findViewById(R.id.inventoryRfidFilterOn1);
         if (mDid != null || (MainActivity.csLibrary4A.getSelectEnable() == false && MainActivity.csLibrary4A.getInvMatchEnable() == false && MainActivity.csLibrary4A.getRssiFilterEnable() == false))
-            rfidFilterOn.setVisibility(View.INVISIBLE);
+            rfidFilterOn.setVisibility(View.GONE);
 
         rfidYieldView = (TextView) getActivity().findViewById(R.id.inventoryRfidYield1);
         rfidRateView = (TextView) getActivity().findViewById(R.id.inventoryRfidRate1);

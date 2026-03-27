@@ -32,7 +32,7 @@ public class AccessSecurityFragment extends CommonFragment {
         super.onActivityCreated(savedInstanceState);
 
         actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-        actionBar.setIcon(R.drawable.dl_access);
+        //actionBar.setIcon(R.drawable.dl_access);
         actionBar.setTitle(R.string.title_activity_security);
 
         TabLayout tabLayout = (TabLayout) getActivity().findViewById(R.id.OperationsTabLayout);

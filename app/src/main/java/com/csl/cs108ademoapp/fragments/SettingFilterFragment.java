@@ -32,7 +32,7 @@ public class SettingFilterFragment extends CommonFragment {
         super.onActivityCreated(savedInstanceState);
 
         actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-        actionBar.setIcon(R.drawable.dl_filters);
+        //actionBar.setIcon(R.drawable.dl_filters);
         actionBar.setTitle(R.string.title_activity_filters);
 
         TabLayout tabLayout = (TabLayout) getActivity().findViewById(R.id.OperationsTabLayout);

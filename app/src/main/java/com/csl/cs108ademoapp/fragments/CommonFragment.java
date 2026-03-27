@@ -222,7 +222,7 @@ public abstract class CommonFragment extends Fragment {
         fragmentActive = true;
     }
 
-    @Override
+    /*@Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
         if (DEBUG) MainActivity.csLibrary4A.appendToLog(fragmentName + " with fragmentActive = " + fragmentActive);
@@ -275,6 +275,33 @@ public abstract class CommonFragment extends Fragment {
                 menu.removeItem(R.id.menuAction_sort);
                 menu.removeItem(R.id.menuAction_sortRssi);
             }
+            
+        }
+    }*/
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        MainActivity.csLibrary4A.appendToLogView("************* fragmentName: " + fragmentName);
+        if (DEBUG) MainActivity.csLibrary4A.appendToLog(fragmentName + " with fragmentActive = " + fragmentActive);
+        if (fragmentActive == false) return;
+        if (fragmentName.matches("ConnectionFragment")) {
+            inflater.inflate(R.menu.menu_connection, menu);
+            if (MainActivity.csLibrary4A.isBleScanning()) {
+                menu.findItem(R.id.action_refresh).setActionView(R.layout.actionbar_indeterminate_progress);
+            } else {
+                menu.findItem(R.id.action_refresh).setActionView(null);
+            }
+        } else {
+            inflater.inflate(R.menu.menu_home, menu);
+            menuBatteryVoltageItem = menu.findItem(R.id.home_voltage);;
+            menuTriggerItem = menu.findItem(R.id.home_trigger);
+            menu.removeItem(R.id.home_menu);
+            menu.removeItem(R.id.menuAction_clear);
+            menu.removeItem(R.id.menuAction_save);
+            menu.removeItem(R.id.menuAction_share);
+            menu.removeItem(R.id.menuAction_sort);
+            menu.removeItem(R.id.menuAction_sortRssi);
         }
     }
 
