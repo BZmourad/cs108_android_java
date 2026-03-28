@@ -696,29 +696,133 @@ public class LectureFragment extends CommonFragment {
                     String tag = device.getAddress();
                     MainActivity.csLibrary4A.appendToLogView("N° " + i + ": tag: " + tag);
                     
-                    // Query to check if the tag exists in the database
-                    String query = "SELECT COUNT(*) as nb FROM Det_inv_immo WHERE Det_inv_immo.CodeInventaire = ? AND "+
-                        "(Det_inv_immo.CodeImmo = ? OR Det_inv_immo.ancienCode_Corr = ? OR Det_inv_immo.NumSerie_Corr = ? OR Det_inv_immo.codeBarre_Corr = ?)";
-                    
-                    Cursor cursor = null;
+                    // First, let's query to see if there are ANY records for this inventory code
+                    String countQuery = "SELECT COUNT(*) as total FROM Det_inv_immo WHERE Det_inv_immo.CodeInventaire = ?";
+                    Cursor countCursor = null;
                     try {
-                        cursor = db.rawQuery(query, new String[]{codeInv, tag, tag, tag, tag});
-                        if (cursor != null && cursor.moveToFirst()) {
-                            int count = cursor.getInt(cursor.getColumnIndexOrThrow("nb"));
-                            boolean exists = count > 0;
-                            
-                            // Update the verification status
-                            updateVerificationStatusOffline(i, tag, exists);
+                        countCursor = db.rawQuery(countQuery, new String[]{codeInv});
+                        if (countCursor != null && countCursor.moveToFirst()) {
+                            int totalRecords = countCursor.getInt(countCursor.getColumnIndexOrThrow("total"));
+                            MainActivity.csLibrary4A.appendToLogView("Total records for inventory " + codeInv + ": " + totalRecords);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        // Update with error status
-                        updateVerificationStatusOffline(i, tag, false);
                     } finally {
-                        if (cursor != null) {
-                            cursor.close();
+                        if (countCursor != null) countCursor.close();
+                    }
+                    
+                    // Now try to find the tag with multiple approaches
+                    boolean exists = false;
+                    String foundInColumn = null;
+                    String foundValue = null;
+                    
+                    // Try 1: Direct match on CodeImmo
+                    String query1 = "SELECT CodeImmo FROM Det_inv_immo WHERE CodeInventaire = ? AND CodeImmo = ? LIMIT 1";
+                    Cursor cursor1 = null;
+                    try {
+                        cursor1 = db.rawQuery(query1, new String[]{codeInv, tag});
+                        if (cursor1 != null && cursor1.moveToFirst()) {
+                            exists = true;
+                            foundInColumn = "CodeImmo";
+                            foundValue = cursor1.getString(cursor1.getColumnIndexOrThrow("CodeImmo"));
+                            MainActivity.csLibrary4A.appendToLogView("Found in CodeImmo: " + foundValue);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        if (cursor1 != null) cursor1.close();
+                    }
+                    
+                    // Try 2: Match on ancienCode_Corr
+                    if (!exists) {
+                        String query2 = "SELECT ancienCode_Corr FROM Det_inv_immo WHERE CodeInventaire = ? AND ancienCode_Corr = ? LIMIT 1";
+                        Cursor cursor2 = null;
+                        try {
+                            cursor2 = db.rawQuery(query2, new String[]{codeInv, tag});
+                            if (cursor2 != null && cursor2.moveToFirst()) {
+                                exists = true;
+                                foundInColumn = "ancienCode_Corr";
+                                foundValue = cursor2.getString(cursor2.getColumnIndexOrThrow("ancienCode_Corr"));
+                                MainActivity.csLibrary4A.appendToLogView("Found in ancienCode_Corr: " + foundValue);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            if (cursor2 != null) cursor2.close();
                         }
                     }
+                    
+                    // Try 3: Match on NumSerie_Corr
+                    if (!exists) {
+                        String query3 = "SELECT NumSerie_Corr FROM Det_inv_immo WHERE CodeInventaire = ? AND NumSerie_Corr = ? LIMIT 1";
+                        Cursor cursor3 = null;
+                        try {
+                            cursor3 = db.rawQuery(query3, new String[]{codeInv, tag});
+                            if (cursor3 != null && cursor3.moveToFirst()) {
+                                exists = true;
+                                foundInColumn = "NumSerie_Corr";
+                                foundValue = cursor3.getString(cursor3.getColumnIndexOrThrow("NumSerie_Corr"));
+                                MainActivity.csLibrary4A.appendToLogView("Found in NumSerie_Corr: " + foundValue);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            if (cursor3 != null) cursor3.close();
+                        }
+                    }
+                    
+                    // Try 4: Match on codeBarre_Corr
+                    if (!exists) {
+                        String query4 = "SELECT codeBarre_Corr FROM Det_inv_immo WHERE CodeInventaire = ? AND codeBarre_Corr = ? LIMIT 1";
+                        Cursor cursor4 = null;
+                        try {
+                            cursor4 = db.rawQuery(query4, new String[]{codeInv, tag});
+                            if (cursor4 != null && cursor4.moveToFirst()) {
+                                exists = true;
+                                foundInColumn = "codeBarre_Corr";
+                                foundValue = cursor4.getString(cursor4.getColumnIndexOrThrow("codeBarre_Corr"));
+                                MainActivity.csLibrary4A.appendToLogView("Found in codeBarre_Corr: " + foundValue);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            if (cursor4 != null) cursor4.close();
+                        }
+                    }
+                    
+                    // Try 5: If still not found, do a more flexible search to see if the tag appears partially
+                    if (!exists) {
+                        String likeQuery = "SELECT CodeImmo, ancienCode_Corr, NumSerie_Corr, codeBarre_Corr FROM Det_inv_immo WHERE CodeInventaire = ? AND " +
+                            "(CodeImmo LIKE ? OR ancienCode_Corr LIKE ? OR NumSerie_Corr LIKE ? OR codeBarre_Corr LIKE ?) LIMIT 5";
+                        String likePattern = "%" + tag + "%";
+                        Cursor likeCursor = null;
+                        try {
+                            likeCursor = db.rawQuery(likeQuery, new String[]{codeInv, likePattern, likePattern, likePattern, likePattern});
+                            if (likeCursor != null && likeCursor.moveToFirst()) {
+                                MainActivity.csLibrary4A.appendToLogView("Partial matches found for tag: " + tag);
+                                int rowCount = 0;
+                                do {
+                                    String codeImmo = likeCursor.getString(likeCursor.getColumnIndexOrThrow("CodeImmo"));
+                                    String ancienCode = likeCursor.getString(likeCursor.getColumnIndexOrThrow("ancienCode_Corr"));
+                                    String numSerie = likeCursor.getString(likeCursor.getColumnIndexOrThrow("NumSerie_Corr"));
+                                    String codeBarre = likeCursor.getString(likeCursor.getColumnIndexOrThrow("codeBarre_Corr"));
+                                    MainActivity.csLibrary4A.appendToLogView("  Match " + (++rowCount) + ": CodeImmo=" + codeImmo + 
+                                        ", ancienCode=" + ancienCode + ", numSerie=" + numSerie + ", codeBarre=" + codeBarre);
+                                } while (likeCursor.moveToNext());
+                            } else {
+                                MainActivity.csLibrary4A.appendToLogView("No matches found (exact or partial) for tag: " + tag);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            if (likeCursor != null) likeCursor.close();
+                        }
+                    }
+                    
+                    // Update the verification status
+                    updateVerificationStatusOffline(i, tag, exists);
+                    MainActivity.csLibrary4A.appendToLogView("Result for tag " + tag + ": exists=" + exists + 
+                        (exists ? ", found in " + foundInColumn + "=" + foundValue : ""));
                 }
             }
         }

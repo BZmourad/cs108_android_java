@@ -22,8 +22,15 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import com.csl.cs108ademoapp.app.db.DatabaseHelper;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.Cursor;
+import android.content.ContentValues;
 
 public class AddImmoFragment extends Fragment {
     private EditText editTextCodeBarre, editTextNumSerie, editTextNote;
@@ -35,6 +42,7 @@ public class AddImmoFragment extends Fragment {
     private String codeInv, codeMission, equipe;
     private String token;
     private String baseUrl;
+    private boolean isOnline;
     
     private List<String> descriptionList = new ArrayList<>();
     private List<String> etatList = new ArrayList<>();
@@ -62,9 +70,10 @@ public class AddImmoFragment extends Fragment {
             codeMission = getArguments().getString("codeMission");
             equipe = getArguments().getString("equipe");
         }
+        isOnline = SharedPrefManager.getInstance(getContext()).isOnlineMode();
         token = SharedPrefManager.getInstance(getContext()).getToken();
         baseUrl = SharedPrefManager.getInstance(getContext()).getServerUrl();
-        MainActivity.csLibrary4A.appendToLogView("AddImmoFragment: Initialisé avec tag=" + tag);
+        MainActivity.csLibrary4A.appendToLogView("AddImmoFragment: Initialisé avec tag=" + tag + ", mode=" + (isOnline ? "online" : "offline"));
     }
 
     @Override
@@ -99,12 +108,299 @@ public class AddImmoFragment extends Fragment {
     }
     
     private void loadAllData() {
-        loadDescriptions();
-        loadEtats();
-        loadEmplacements();
+        if (isOnline) {
+            loadDescriptionsOnline();
+            loadEtatsOnline();
+            loadEmplacementsOnline();
+        } else {
+            loadDescriptionsOffline();
+            loadEtatsOffline();
+            loadEmplacementsOffline();
+        }
     }
     
-    private void loadDescriptions() {
+    // ==================== OFFLINE METHODS ====================
+    
+    private void loadDescriptionsOffline() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DatabaseHelper dbHelper = new DatabaseHelper(getContext());
+                SQLiteDatabase db = dbHelper.getReadableDatabase();
+                String query = "SELECT DISTINCT Descp_immo FROM Det_inv_immo WHERE CodeInventaire = ?";
+                String[] args = {codeInv};
+                Cursor cursor = null;
+                try {
+                    cursor = db.rawQuery(query, args);
+                    descriptionList.clear();
+                    while (cursor.moveToNext()) {
+                        String desc = cursor.getString(0);
+                        if (desc != null && !desc.isEmpty()) {
+                            descriptionList.add(desc);
+                        }
+                    }
+                    
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), 
+                                android.R.layout.simple_spinner_item, descriptionList);
+                            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            spinnerDescription.setAdapter(adapter);
+                            checkAllDataLoaded();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    MainActivity.csLibrary4A.appendToLogView("AddImmoFragment: Erreur chargement descriptions offline=" + e.getMessage());
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getContext(), "Erreur chargement descriptions", Toast.LENGTH_SHORT).show();
+                            checkAllDataLoaded();
+                        }
+                    });
+                } finally {
+                    if (cursor != null) {
+                        cursor.close();
+                    }
+                    db.close();
+                }
+            }
+        }).start();
+    }
+    
+    private void loadEtatsOffline() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DatabaseHelper dbHelper = new DatabaseHelper(getContext());
+                SQLiteDatabase db = dbHelper.getReadableDatabase();
+                String query = "SELECT * FROM SouSEtat ORDER BY LibelleEtat";
+                Cursor cursor = null;
+                try {
+                    cursor = db.rawQuery(query, null);
+                    etatList.clear();
+                    etatCodeList.clear();
+                    while (cursor.moveToNext()) {
+                        // Assuming table has columns: code, LibelleEtat
+                        String code = cursor.getString(cursor.getColumnIndexOrThrow("LibelleEtat"));
+                        String libelle = cursor.getString(cursor.getColumnIndexOrThrow("DescriptionEtat"));
+                        etatList.add(libelle);
+                        etatCodeList.add(code);
+                    }
+                    
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), 
+                                android.R.layout.simple_spinner_item, etatList);
+                            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            spinnerEtat.setAdapter(adapter);
+                            
+                            // Sélectionner "Bien" par défaut si disponible
+                            for (int i = 0; i < etatList.size(); i++) {
+                                if ("Bien".equals(etatList.get(i))) {
+                                    spinnerEtat.setSelection(i);
+                                    break;
+                                }
+                            }
+                            checkAllDataLoaded();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    MainActivity.csLibrary4A.appendToLogView("AddImmoFragment: Erreur chargement états offline=" + e.getMessage());
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getContext(), "Erreur chargement états", Toast.LENGTH_SHORT).show();
+                            checkAllDataLoaded();
+                        }
+                    });
+                } finally {
+                    if (cursor != null) {
+                        cursor.close();
+                    }
+                    db.close();
+                }
+            }
+        }).start();
+    }
+    
+    private void loadEmplacementsOffline() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DatabaseHelper dbHelper = new DatabaseHelper(getContext());
+                SQLiteDatabase db = dbHelper.getReadableDatabase();
+                String query = "SELECT DISTINCT Inv_EquipeInventaire.CodeEmplacement AS CodeEmplacement, " +
+                               "ArbreEmp.Libelle AS Libelle " +
+                               "FROM Inv_EquipeInventaire, ArbreEmp " +
+                               "WHERE Inv_EquipeInventaire.CodeEmplacement = ArbreEmp.code " +
+                               "AND ArbreEmp.Idparent <> '#' " +
+                               "AND Inv_EquipeInventaire.Codeinv = ? " +
+                               "AND Inv_EquipeInventaire.codemission = ? " +
+                               "AND Inv_EquipeInventaire.codeEquipe = ?";
+                String[] args = {codeInv, codeMission, equipe};
+                Cursor cursor = null;
+                try {
+                    cursor = db.rawQuery(query, args);
+                    emplacementList.clear();
+                    emplacementCodeList.clear();
+                    while (cursor.moveToNext()) {
+                        String code = cursor.getString(0);
+                        String libelle = cursor.getString(1);
+                        emplacementList.add(libelle);
+                        emplacementCodeList.add(code);
+                    }
+                    
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), 
+                                android.R.layout.simple_spinner_item, emplacementList);
+                            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            spinnerEmplacement.setAdapter(adapter);
+                            checkAllDataLoaded();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    MainActivity.csLibrary4A.appendToLogView("AddImmoFragment: Erreur chargement emplacements offline=" + e.getMessage());
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getContext(), "Erreur chargement emplacements", Toast.LENGTH_SHORT).show();
+                            checkAllDataLoaded();
+                        }
+                    });
+                } finally {
+                    if (cursor != null) {
+                        cursor.close();
+                    }
+                    db.close();
+                }
+            }
+        }).start();
+    }
+    
+    private void saveImmoOffline() {
+        String codeImmoValue = tag;
+        
+        if (codeImmoValue.isEmpty()) {
+            Toast.makeText(getContext(), "Code Immo non disponible", Toast.LENGTH_SHORT).show();
+            showProgress(false);
+            return;
+        }
+        
+        if (spinnerDescription.getSelectedItem() == null || spinnerDescription.getSelectedItemPosition() < 0) {
+            Toast.makeText(getContext(), "Veuillez sélectionner une description", Toast.LENGTH_SHORT).show();
+            showProgress(false);
+            return;
+        }
+        
+        if (spinnerEtat.getSelectedItem() == null || spinnerEtat.getSelectedItemPosition() < 0) {
+            Toast.makeText(getContext(), "Veuillez sélectionner un état", Toast.LENGTH_SHORT).show();
+            showProgress(false);
+            return;
+        }
+        
+        if (spinnerEmplacement.getSelectedItem() == null || spinnerEmplacement.getSelectedItemPosition() < 0) {
+            Toast.makeText(getContext(), "Veuillez sélectionner un emplacement", Toast.LENGTH_SHORT).show();
+            showProgress(false);
+            return;
+        }
+        
+        final String codeImmo = codeImmoValue;
+        final String description = spinnerDescription.getSelectedItem().toString();
+        final String codeBarre = editTextCodeBarre.getText().toString().trim();
+        final String numSerie = editTextNumSerie.getText().toString().trim();
+        final String note = editTextNote.getText().toString().trim();
+        final String codeEtat = etatCodeList.get(spinnerEtat.getSelectedItemPosition());
+        final String codeEmp = emplacementCodeList.get(spinnerEmplacement.getSelectedItemPosition());
+        
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DatabaseHelper dbHelper = new DatabaseHelper(getContext());
+                SQLiteDatabase db = null;
+                try {
+                    db = dbHelper.getWritableDatabase();
+                    
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                    String dateheurenow = sdf.format(new Date());
+                    String userCode = SharedPrefManager.getInstance(getContext()).getUserCode();
+                    
+                    ContentValues values = new ContentValues();
+                    values.put("CodeInventaire", codeInv);
+                    values.put("CodeImmo", tag);
+                    values.put("Descp_immo", description);
+                    values.put("Observation", note);
+                    values.put("codeBarre_Corr", codeBarre);
+                    values.put("NumSerie_Corr", numSerie);
+                    values.put("codeEtat_Corr", codeEtat);
+                    values.put("codeEmpInv", codeEmp);
+                    values.put("codemission", codeMission);
+                    values.put("codeEquipe", equipe);
+                    values.put("EtatCorrection", 3);
+                    values.put("issync", 0);
+                    values.put("nbr_Crt", 1);
+                    values.put("nbr_Crt_valid", 1);
+                    values.put("nbr_Valid", 0);
+                    values.put("DateLecture", dateheurenow);
+                    values.put("UserLecture", userCode);
+                    
+                    MainActivity.csLibrary4A.appendToLogView("AddImmoFragment: Tentative insertion avec ContentValues");
+                    
+                    long result = db.insertOrThrow(DatabaseHelper.TABLE_DET_INV_IMMO, null, values);
+                    
+                    MainActivity.csLibrary4A.appendToLogView("AddImmoFragment: Insertion réussie, result=" + result);
+                    
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            showProgress(false);
+                            Toast.makeText(getContext(), "Immobilisation enregistrée en mode offline", Toast.LENGTH_LONG).show();
+                            MainActivity.csLibrary4A.appendToLogView("AddImmoFragment: Insertion offline réussie");
+                            getActivity().getSupportFragmentManager().popBackStack();
+                        }
+                    });
+                } catch (android.database.sqlite.SQLiteException e) {
+                    e.printStackTrace();
+                    String errorMsg = "SQLiteException [" + e.getMessage() + "]: " + e.getMessage();
+                    MainActivity.csLibrary4A.appendToLogView("AddImmoFragment: " + errorMsg);
+                    final String finalError = errorMsg;
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            showProgress(false);
+                            Toast.makeText(getContext(), "Erreur SQL: " + finalError, Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    MainActivity.csLibrary4A.appendToLogView("AddImmoFragment: Exception=" + e.getMessage());
+                    final String errorMsg = e.getMessage() != null ? e.getMessage() : "Erreur inconnue";
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            showProgress(false);
+                            Toast.makeText(getContext(), "Erreur: " + errorMsg, Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } finally {
+                    if (db != null) {
+                        db.close();
+                    }
+                }
+            }
+        }).start();
+    }
+    
+    // ==================== ONLINE METHODS (renamed from original) ====================
+    
+    private void loadDescriptionsOnline() {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -167,7 +463,7 @@ public class AddImmoFragment extends Fragment {
         }).start();
     }
     
-    private void loadEtats() {
+    private void loadEtatsOnline() {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -239,7 +535,7 @@ public class AddImmoFragment extends Fragment {
         }).start();
     }
     
-    private void loadEmplacements() {
+    private void loadEmplacementsOnline() {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -305,55 +601,33 @@ public class AddImmoFragment extends Fragment {
         }).start();
     }
     
-    private int loadedCount = 0;
-    private void checkAllDataLoaded() {
-        loadedCount++;
-        if (loadedCount >= 3) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    showProgress(false);
-                }
-            });
-        }
-    }
-    
-    private void showProgress(boolean show) {
-        if (show) {
-            progressBar.setVisibility(View.VISIBLE);
-            buttonSave.setEnabled(false);
-        } else {
-            progressBar.setVisibility(View.GONE);
-            buttonSave.setEnabled(true);
-        }
-    }
-    
-    private void saveImmo() {
+    private void saveImmoOnline() {
         // Vérifier les champs obligatoires
         String codeImmoValue = tag; // Utiliser le tag comme code_immo
         
         if (codeImmoValue.isEmpty()) {
             Toast.makeText(getContext(), "Code Immo non disponible", Toast.LENGTH_SHORT).show();
+            showProgress(false);
             return;
         }
         
         if (spinnerDescription.getSelectedItem() == null || spinnerDescription.getSelectedItemPosition() < 0) {
             Toast.makeText(getContext(), "Veuillez sélectionner une description", Toast.LENGTH_SHORT).show();
+            showProgress(false);
             return;
         }
         
         if (spinnerEtat.getSelectedItem() == null || spinnerEtat.getSelectedItemPosition() < 0) {
             Toast.makeText(getContext(), "Veuillez sélectionner un état", Toast.LENGTH_SHORT).show();
+            showProgress(false);
             return;
         }
         
         if (spinnerEmplacement.getSelectedItem() == null || spinnerEmplacement.getSelectedItemPosition() < 0) {
             Toast.makeText(getContext(), "Veuillez sélectionner un emplacement", Toast.LENGTH_SHORT).show();
+            showProgress(false);
             return;
         }
-        
-        showProgress(true);
-        buttonSave.setEnabled(false);
         
         final String username = SharedPrefManager.getInstance(getContext()).getUsername();
         final String codeImmo = codeImmoValue;
@@ -381,7 +655,7 @@ public class AddImmoFragment extends Fragment {
                     
                     JSONObject jsonParam = new JSONObject();
                     jsonParam.put("user", username);
-                    jsonParam.put("code_immo", codeImmo);  // Utiliser le tag comme code_immo
+                    jsonParam.put("code_immo", codeImmo);
                     jsonParam.put("code_art", "");
                     jsonParam.put("desc", description);
                     jsonParam.put("note", note);
@@ -391,7 +665,6 @@ public class AddImmoFragment extends Fragment {
                     jsonParam.put("codeEmpInv", codeEmp);
                     jsonParam.put("codemission", codeMission);
                     jsonParam.put("codeEquipe", equipe);
-                    // Note: Code_RFID n'est plus envoyé
                     
                     MainActivity.csLibrary4A.appendToLogView("AddImmoFragment: Envoi données: " + jsonParam.toString());
                     
@@ -427,7 +700,6 @@ public class AddImmoFragment extends Fragment {
                                 Toast.makeText(getContext(), "Immobilisation ajoutée avec succès", Toast.LENGTH_LONG).show();
                                 MainActivity.csLibrary4A.appendToLogView("AddImmoFragment: Sauvegarde réussie");
                                 showProgress(false);
-                                // Retour au fragment précédent
                                 getActivity().getSupportFragmentManager().popBackStack();
                             }
                         });
@@ -460,5 +732,39 @@ public class AddImmoFragment extends Fragment {
                 }
             }
         }).start();
+    }
+    
+    private int loadedCount = 0;
+    private void checkAllDataLoaded() {
+        loadedCount++;
+        if (loadedCount >= 3) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    showProgress(false);
+                }
+            });
+        }
+    }
+    
+    private void showProgress(boolean show) {
+        if (show) {
+            progressBar.setVisibility(View.VISIBLE);
+            buttonSave.setEnabled(false);
+        } else {
+            progressBar.setVisibility(View.GONE);
+            buttonSave.setEnabled(true);
+        }
+    }
+    
+    private void saveImmo() {
+        showProgress(true);
+        buttonSave.setEnabled(false);
+        
+        if (isOnline) {
+            saveImmoOnline();
+        } else {
+            saveImmoOffline();
+        }
     }
 }
