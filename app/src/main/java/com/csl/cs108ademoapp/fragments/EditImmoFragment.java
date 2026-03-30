@@ -130,36 +130,37 @@ public class EditImmoFragment extends Fragment {
             public void run() {
                 DatabaseHelper dbHelper = new DatabaseHelper(getContext());
                 SQLiteDatabase db = dbHelper.getReadableDatabase();
+                // Requête corrigée - retiré ancienCode_Corr qui n'existe pas
                 String query = "SELECT " +
-                    "Det_inv_immo.CodeInventaire AS CodeInventaire, " +
-                    "Det_inv_immo.CodeImmo AS CodeImmo, " +
-                    "Det_inv_immo.Descp_immo AS lib, " +
-                    "Det_inv_immo.codeArticle AS codeArticle, " +
-                    "Det_inv_immo.issync AS issync, " +
-                    "Det_inv_immo.EtatCorrection AS EtatCorrection, " +
-                    "Det_inv_immo.empl_Corr AS empl_Corr, " +
-                    "Det_inv_immo.codeEtat_Corr AS codeEtat_Corr, " +
-                    "Det_inv_immo.codeBarre_Corr AS codeBarre_inv, " +
-                    "Det_inv_immo.ancienCode_Corr AS ancienCode_Corr, " +
-                    "Det_inv_immo.codeEmpInv AS codeEmpInv, " +
-                    "Det_inv_immo.NumSerie_Corr AS num_serie_inv, " +
-                    "Det_inv_immo.Observation AS Observation " +
+                    "CodeInventaire, " +
+                    "CodeImmo, " +
+                    "Descp_immo, " +
+                    "codeArticle, " +
+                    "issync, " +
+                    "EtatCorrection, " +
+                    "empl_Corr, " +
+                    "codeEtat_Corr, " +
+                    "codeBarre_Corr, " +
+                    "codeEmpInv, " +
+                    "NumSerie_Corr, " +
+                    "Observation " +
                     "FROM Det_inv_immo " +
-                    "WHERE Det_inv_immo.CodeInventaire = ? " +
-                    "AND (Det_inv_immo.CodeImmo = ? " +
-                    "OR Det_inv_immo.ancienCode_Corr = ? " +
-                    "OR Det_inv_immo.NumSerie_Corr = ? " +
-                    "OR Det_inv_immo.codeBarre_Corr = ?)";
+                    "WHERE CodeInventaire = ? " +
+                    "AND (CodeImmo = ? " +
+                    "OR NumSerie_Corr = ? " +
+                    "OR codeBarre_Corr = ?)";
                     
-                String[] args = {codeInv, tag, tag, tag, tag};
+                String[] args = {codeInv, tag, tag, tag};
                 Cursor cursor = null;
                 try {
                     cursor = db.rawQuery(query, args);
                     
+                    MainActivity.csLibrary4A.appendToLogView("EditImmoFragment (offline): Nombre de résultats=" + cursor.getCount());
+                    
                     if (cursor.moveToFirst()) {
                         codeImmo = cursor.getString(cursor.getColumnIndexOrThrow("CodeImmo"));
-                        currentCodeBarre = cursor.getString(cursor.getColumnIndexOrThrow("codeBarre_inv"));
-                        currentNumSerie = cursor.getString(cursor.getColumnIndexOrThrow("num_serie_inv"));
+                        currentCodeBarre = cursor.getString(cursor.getColumnIndexOrThrow("codeBarre_Corr"));
+                        currentNumSerie = cursor.getString(cursor.getColumnIndexOrThrow("NumSerie_Corr"));
                         currentEtatCode = cursor.getString(cursor.getColumnIndexOrThrow("codeEtat_Corr"));
                         currentEmplacementCode = cursor.getString(cursor.getColumnIndexOrThrow("codeEmpInv"));
                         currentNote = cursor.getString(cursor.getColumnIndexOrThrow("Observation"));
@@ -176,6 +177,7 @@ public class EditImmoFragment extends Fragment {
                             }
                         });
                     } else {
+                        MainActivity.csLibrary4A.appendToLogView("EditImmoFragment (offline): Aucun résultat trouvé pour tag=" + tag);
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -187,10 +189,11 @@ public class EditImmoFragment extends Fragment {
                 } catch (Exception e) {
                     e.printStackTrace();
                     MainActivity.csLibrary4A.appendToLogView("EditImmoFragment: Erreur chargement détails offline=" + e.getMessage());
+                    final String errorMsg = e.getMessage();
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(getContext(), "Erreur de chargement", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), "Erreur de chargement: " + errorMsg, Toast.LENGTH_LONG).show();
                             getActivity().getSupportFragmentManager().popBackStack();
                         }
                     });
@@ -210,18 +213,21 @@ public class EditImmoFragment extends Fragment {
             public void run() {
                 DatabaseHelper dbHelper = new DatabaseHelper(getContext());
                 SQLiteDatabase db = dbHelper.getReadableDatabase();
-                String query = "SELECT * FROM SouSEtat ORDER BY LibelleEtat";
+                // Requête corrigée - utiliser les bonnes colonnes
+                String query = "SELECT LibelleEtat, DescriptionEtat FROM SouSEtat ORDER BY LibelleEtat";
                 Cursor cursor = null;
                 try {
                     cursor = db.rawQuery(query, null);
                     etatList.clear();
                     etatCodeList.clear();
                     while (cursor.moveToNext()) {
-                        String code = cursor.getString(cursor.getColumnIndexOrThrow("LibelleEtat"));
-                        String libelle = cursor.getString(cursor.getColumnIndexOrThrow("DescriptionEtat"));
+                        String code = cursor.getString(0);
+                        String libelle = cursor.getString(1);
                         etatList.add(libelle);
                         etatCodeList.add(code);
                     }
+                    
+                    MainActivity.csLibrary4A.appendToLogView("EditImmoFragment (offline): Etats chargés - count=" + etatList.size());
                     
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
@@ -267,6 +273,8 @@ public class EditImmoFragment extends Fragment {
             public void run() {
                 DatabaseHelper dbHelper = new DatabaseHelper(getContext());
                 SQLiteDatabase db = dbHelper.getReadableDatabase();
+                // Utiliser Inv_EquipeInventaire au lieu de Inv_EquipeInventaire
+                
                 String query = "SELECT DISTINCT " +
                     "Inv_EquipeInventaire.CodeEmplacement AS CodeEmplacement, " +
                     "ArbreEmp.Libelle AS Libelle " +
@@ -288,6 +296,8 @@ public class EditImmoFragment extends Fragment {
                         emplacementList.add(libelle);
                         emplacementCodeList.add(code);
                     }
+                    
+                    MainActivity.csLibrary4A.appendToLogView("EditImmoFragment (offline): Emplacements chargés - count=" + emplacementList.size());
                     
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
@@ -358,15 +368,15 @@ public class EditImmoFragment extends Fragment {
                     String dateheurenow = sdf.format(new Date());
                     String userCode = SharedPrefManager.getInstance(getContext()).getUserCode();
                     
-                    // Récupérer d'abord l'enregistrement actuel pour vérifier CodeEmpTh
-                    String selectQuery = "SELECT CodeEmpTh FROM Det_inv_immo WHERE CodeInventaire = ? AND CodeImmo = ?";
+                    // Récupérer l'emplacement théorique actuel
+                    String selectQuery = "SELECT codeEmpInv FROM Det_inv_immo WHERE CodeInventaire = ? AND CodeImmo = ?";
                     String[] selectArgs = {codeInv, codeImmo};
                     Cursor cursor = null;
-                    String codeEmpTh = null;
+                    String currentEmp = null;
                     try {
                         cursor = db.rawQuery(selectQuery, selectArgs);
                         if (cursor.moveToFirst()) {
-                            codeEmpTh = cursor.getString(0);
+                            currentEmp = cursor.getString(0);
                         }
                     } finally {
                         if (cursor != null) {
@@ -383,21 +393,19 @@ public class EditImmoFragment extends Fragment {
                     values.put("codeEquipe", equipe);
                     values.put("codeBarre_Corr", codeBarre);
                     values.put("NumSerie_Corr", numSerie);
-                    values.put("RFIDCode_Corr", codeImmo);
                     values.put("Observation", note);
                     values.put("issync", 2);
                     values.put("codeEtat_Corr", codeEtat);
                     
                     // Logique métier pour EtatCorrection
-                    if (codeEmpTh != null && !codeEmpTh.equals(codeEmp)) {
+                    if (currentEmp != null && !currentEmp.equals(codeEmp)) {
                         values.put("nbr_Crt", 1);
                         values.put("nbr_Crt_valid", 1);
                         values.put("EtatCorrection", 4);
                     } else {
                         values.put("nbr_Crt", 0);
                         values.put("nbr_Crt_valid", 0);
-                        values.put("codeEmpCor", codeEmpTh);
-                        if (codeEmpTh != null && codeEmpTh.equals(codeEmp)) {
+                        if (currentEmp != null && currentEmp.equals(codeEmp)) {
                             values.put("EtatCorrection", 1);
                             values.put("DateValidation", dateheurenow);
                             values.put("Uservalidation", userCode);
@@ -411,28 +419,32 @@ public class EditImmoFragment extends Fragment {
                     
                     int rowsAffected = db.update(DatabaseHelper.TABLE_DET_INV_IMMO, values, whereClause, whereArgs);
                     
+                    MainActivity.csLibrary4A.appendToLogView("EditImmoFragment: Mise à jour offline - rowsAffected=" + rowsAffected);
+                    
+                    final int finalRowsAffected = rowsAffected;
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             showProgress(false);
-                            if (rowsAffected > 0) {
+                            if (finalRowsAffected > 0) {
                                 Toast.makeText(getContext(), "Immobilisation modifiée en mode offline", Toast.LENGTH_LONG).show();
                                 MainActivity.csLibrary4A.appendToLogView("EditImmoFragment: Mise à jour offline réussie");
                                 getActivity().getSupportFragmentManager().popBackStack();
                             } else {
                                 Toast.makeText(getContext(), "Erreur lors de la modification offline", Toast.LENGTH_LONG).show();
-                                MainActivity.csLibrary4A.appendToLogView("EditImmoFragment: Erreur mise à jour offline");
+                                MainActivity.csLibrary4A.appendToLogView("EditImmoFragment: Erreur mise à jour offline - rows=" + finalRowsAffected);
                             }
                         }
                     });
                 } catch (Exception e) {
                     e.printStackTrace();
                     MainActivity.csLibrary4A.appendToLogView("EditImmoFragment: Exception offline=" + e.getMessage());
+                    final String errorMsg = e.getMessage() != null ? e.getMessage() : "Erreur inconnue";
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             showProgress(false);
-                            Toast.makeText(getContext(), "Erreur: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), "Erreur: " + errorMsg, Toast.LENGTH_LONG).show();
                         }
                     });
                 } finally {
@@ -444,7 +456,7 @@ public class EditImmoFragment extends Fragment {
         }).start();
     }
     
-    // ==================== ONLINE METHODS (renamed from original) ====================
+    // ==================== ONLINE METHODS ====================
     
     private void loadImmoDetailsOnline() {
         new Thread(new Runnable() {
@@ -473,7 +485,7 @@ public class EditImmoFragment extends Fragment {
                         final String numSerie = tabSrch.optString("num_serie_inv", "");
                         currentEtatCode = tabSrch.optString("codeEtat_Corr", "");
                         currentEmplacementCode = tabSrch.optString("codeEmpInv", "");
-                        final String description = tabSrch.optString("lib", "");
+                        currentNote = tabSrch.optString("Observation", "");
                         
                         MainActivity.csLibrary4A.appendToLogView("EditImmoFragment: Détails chargés - code_immo=" + codeImmo);
                         
@@ -482,6 +494,7 @@ public class EditImmoFragment extends Fragment {
                             public void run() {
                                 editTextCodeBarre.setText(codeBarre);
                                 editTextNumSerie.setText(numSerie);
+                                editTextNote.setText(currentNote);
                                 checkAllDataLoaded();
                             }
                         });
@@ -547,7 +560,6 @@ public class EditImmoFragment extends Fragment {
                                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                                 spinnerEtat.setAdapter(adapter);
                                 
-                                // Sélectionner l'état actuel
                                 for (int i = 0; i < etatCodeList.size(); i++) {
                                     if (etatCodeList.get(i).equals(currentEtatCode)) {
                                         spinnerEtat.setSelection(i);
@@ -620,7 +632,6 @@ public class EditImmoFragment extends Fragment {
                                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                                 spinnerEmplacement.setAdapter(adapter);
                                 
-                                // Sélectionner l'emplacement actuel
                                 for (int i = 0; i < emplacementCodeList.size(); i++) {
                                     if (emplacementCodeList.get(i).equals(currentEmplacementCode)) {
                                         spinnerEmplacement.setSelection(i);
