@@ -152,6 +152,11 @@ public class LectureFragment extends CommonFragment {
         if (getArguments() != null) {
             bMultiBank = getArguments().getBoolean("bMultiBank");
             mDid = getArguments().getString("mDid");
+
+            codeInv = getArguments().getString("codeInv");
+            codeMission = getArguments().getString("codeMission");
+            equipe = getArguments().getString("equipe");
+
             try {
                 int iValue = getArguments().getInt("enumTagType");
                 MainActivity.csLibrary4A.appendToLog("onCreate: enumTagType iValue = " + iValue);
@@ -463,13 +468,19 @@ public class LectureFragment extends CommonFragment {
             }
         }
     }
-    public static LectureFragment newInstance(boolean bMultiBank, RfidReader.TagType tagType, String mDid) {
+    public static LectureFragment newInstance(boolean bMultiBank, RfidReader.TagType tagType, String mDid, String codeInv, String codeMission, String equipe) {
         LectureFragment myFragment = new LectureFragment();
         Bundle args = new Bundle();
         MainActivity.csLibrary4A.appendToLog("newInstance: enumTagType = " + (tagType == null ? "null" : tagType.toString()));
         if (tagType != null) args.putInt("enumTagType", tagType.ordinal());
         args.putBoolean("bMultiBank", bMultiBank);
         args.putString("mDid", mDid);
+        
+        // Add the new parameters
+        args.putString("codeInv", codeInv);
+        args.putString("codeMission", codeMission);
+        args.putString("equipe", equipe);
+        
         myFragment.setArguments(args);
         return myFragment;
     }

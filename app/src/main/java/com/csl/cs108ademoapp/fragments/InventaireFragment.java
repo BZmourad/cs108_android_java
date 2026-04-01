@@ -272,23 +272,23 @@ public class InventaireFragment extends CommonFragment {
             holder.buttonLancer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    openLectureFragment(item.getCodeInv(), item.getCodeMission(), item.getEquipe());
+                    openInventoryFragment(item.getCodeInv(), item.getCodeMission(), item.getEquipe());
                 }
             });
 
             return convertView;
         }
 
-        private void openLectureFragment(String codeInv, String codeMission, String equipe) {
-            LectureFragment lectureFragment = new LectureFragment();
+        private void openInventoryFragment(String codeInv, String codeMission, String equipe) {
+            InventoryFragment inventoryFragment = new InventoryFragment();
             // Passer les paramètres via Bundle
             Bundle args = new Bundle();
             args.putString("codeInv", codeInv);
             args.putString("codeMission", codeMission);
             args.putString("equipe", equipe);
-            lectureFragment.setArguments(args);
+            inventoryFragment.setArguments(args);
             getActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.content_frame, lectureFragment).addToBackStack(null).commit();
+                    .replace(R.id.content_frame, inventoryFragment).addToBackStack(null).commit();
         }
 
         class ViewHolder {

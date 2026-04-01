@@ -54,7 +54,7 @@
             android:layout_weight="10"
             android:layout_height="match_parent"
             android:gravity="center"
-            style="@style/style_button_font" />
+            style="@style/style_button_font_2" />
 
         <Button
             android:id="@+id/inventoryBarcodeButton"
@@ -62,6 +62,7 @@
             android:layout_weight="10"
             android:layout_height="match_parent"
             style="@style/style_button_font"
+            android:textSize="12sp"
             android:text="@string/start_title" />
 
         <TextView
@@ -70,6 +71,6 @@
             android:layout_weight="10"
             android:layout_height="match_parent"
             android:gravity="center"
-            style="@style/style_button_font" />
+            style="@style/style_button_font_2" />
     </LinearLayout>
 </LinearLayout>

@@ -28,7 +28,7 @@
             android:visibility="gone"
             android:src="@drawable/ic_pending"/>
 
-        <CheckedTextView
+        <TextView
             android:id="@+id/reader_checkedtextview"
             android:layout_width="0dp"
             android:layout_weight="70"

@@ -56,7 +56,7 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
             convertView = layoutInflater.inflate(resourceId, null);
         }
 
-        CheckedTextView checkedTextView = (CheckedTextView) convertView.findViewById(R.id.reader_checkedtextview);
+        TextView checkedTextView = (TextView) convertView.findViewById(R.id.reader_checkedtextview);
         String text1 = "";
         if (reader.getName() != null) {
             if (reader.getName().length() != 0) {
@@ -81,11 +81,11 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
         }
         checkedTextView.setText(text1);
         MainActivity.csLibrary4A.appendToLog("mouradbz : " + text1);
-        if (reader.getSelected()) {
+        /*if (reader.getSelected()) {
             checkedTextView.setChecked(true);
         } else {
             checkedTextView.setChecked(false);
-        }
+        }*/
 
         TextView countTextView = (TextView) convertView.findViewById(R.id.reader_count);
         if (reader.getCount() != 0) {
@@ -175,7 +175,7 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
             buttonEditDetail.setTag(position);
         }*/
 
-        if (reader.isConnected() || checkedTextView.isChecked() || select4detail == false) {
+        if (reader.isConnected() || /*checkedTextView.isChecked() ||*/ select4detail == false) {
             readerDetailA.setText(reader.getDetails());
             readerDetailB.setText("");
             if (reader.isConnected()) {

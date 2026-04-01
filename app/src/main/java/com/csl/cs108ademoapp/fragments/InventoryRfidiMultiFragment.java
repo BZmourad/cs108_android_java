@@ -19,10 +19,10 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.content.Context;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-
+import java.util.ArrayList;
 import com.csl.cs108ademoapp.CustomPopupWindow;
 import com.csl.cs108ademoapp.GenericTextWatcher;
 import com.csl.cs108ademoapp.InventoryRfidTask;
@@ -34,14 +34,33 @@ import com.csl.cslibrary4a.NotificationConnector;
 import com.csl.cslibrary4a.ReaderDevice;
 import com.csl.cslibrary4a.RfidReader;
 import com.csl.cslibrary4a.RfidReaderChipData;
-
+import android.widget.ImageButton;
 import java.util.Collections;
 import java.util.Comparator;
 
+import com.csl.cs108ademoapp.apps.SharedPrefManager;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import org.json.JSONObject;
+import android.widget.ImageView;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.widget.EditText;
+import com.csl.cs108ademoapp.SettingTask;
+import com.csl.cs108ademoapp.app.db.DatabaseHelper;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.database.Cursor;
+
 public class InventoryRfidiMultiFragment extends CommonFragment {
     final private boolean bAdd2End = false;
+    private Button settingRfidButton;
     private boolean bMultiBank = false, bMultiBankInventory = false, bctesiusInventory = false;
     private RfidReader.TagType tagType;
+
+    public Context ctx;
     private String mDid = null;
     int vibrateTimeBackup = 0;
 
@@ -54,9 +73,14 @@ public class InventoryRfidiMultiFragment extends CommonFragment {
     private TextView rfidYieldView;
     private TextView rfidRateView;
     private Button button;
+    private Button verifyRfidButton;
 
     private ReaderListAdapter readerListAdapter;
     private InventoryRfidTask inventoryRfidTask;
+    private String codeInv;
+    private String codeMission;
+    private String equipe;
+    private String token;
 
     void clearTagsList() {
         MainActivity.csLibrary4A.appendToLog("InventoryRfidMultiFragment: NOT onOptionsItemSelected: clearTagsList");
@@ -133,6 +157,8 @@ public class InventoryRfidiMultiFragment extends CommonFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ctx = getActivity();
+        token = SharedPrefManager.getInstance(ctx).getToken();
         if (getArguments() != null) {
             bMultiBank = getArguments().getBoolean("bMultiBank");
             mDid = getArguments().getString("mDid");
@@ -152,6 +178,9 @@ public class InventoryRfidiMultiFragment extends CommonFragment {
                     bctesiusInventory = true;
                 }
             }
+            codeInv = getArguments().getString("codeInv");
+            codeMission = getArguments().getString("codeMission");
+            equipe = getArguments().getString("equipe");
         }
     }
 
@@ -273,6 +302,18 @@ public class InventoryRfidiMultiFragment extends CommonFragment {
             }
         });
 
+        verifyRfidButton = (Button) getActivity().findViewById(R.id.verifyRfidButton);
+        verifyRfidButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
+                    verifyTagsList();
+                } else {
+                    verifyTagsListOffline();
+                }
+            }
+        });
+
         vibrateTimeBackup = MainActivity.csLibrary4A.getVibrateTime();
         final Button buttonT1 = (Button) getActivity().findViewById(R.id.inventoryRfidButtonT1);
         buttonT1.setOnClickListener(new View.OnClickListener() {
@@ -291,6 +332,185 @@ public class InventoryRfidiMultiFragment extends CommonFragment {
                 }
             }
         });
+
+        Button clearListButton = (Button) getActivity().findViewById(R.id.clearListButton);
+        clearListButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearTagsList();
+                Toast.makeText(getActivity(), "Liste vidée", Toast.LENGTH_SHORT).show();
+            }
+        });
+        settingRfidButton = getActivity().findViewById(R.id.settingRfidButton);
+        if (settingRfidButton != null) {
+            settingRfidButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //showPowerSettingsDialog();
+                    SettingFragment settingFragment = new SettingFragment();
+                    getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, settingFragment).addToBackStack(null).commit();
+                }
+            });
+        }
+    }
+
+    private void verifyTagsList() {
+        if (readerListAdapter != null) {
+            ArrayList<ReaderDevice> allReaderDevices = new ArrayList<>();
+            for (int i = 0; i < readerListAdapter.getCount(); i++) {
+                ReaderDevice device = readerListAdapter.getItem(i);
+                if (device != null) {
+                    allReaderDevices.add(device);
+                    String tag = device.getAddress();
+                    MainActivity.csLibrary4A.appendToLogView("N° " + i + ": tag: " + tag);
+                    new VerifyTagTask(i, tag).execute();
+                }
+            }
+        }
+    }
+
+    private void verifyTagsListOffline() {
+        DatabaseHelper dbHelper = new DatabaseHelper(ctx);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        
+        if (readerListAdapter != null) {
+            for (int i = 0; i < readerListAdapter.getCount(); i++) {
+                ReaderDevice device = readerListAdapter.getItem(i);
+                if (device != null) {
+                    String tag = device.getAddress();
+                    MainActivity.csLibrary4A.appendToLogView("N° " + i + ": tag: " + tag);
+                    
+                    // First, let's query to see if there are ANY records for this inventory code
+                    String countQuery = "SELECT COUNT(*) as total FROM Det_inv_immo WHERE Det_inv_immo.CodeInventaire = ?";
+                    Cursor countCursor = null;
+                    try {
+                        countCursor = db.rawQuery(countQuery, new String[]{codeInv});
+                        if (countCursor != null && countCursor.moveToFirst()) {
+                            int totalRecords = countCursor.getInt(countCursor.getColumnIndexOrThrow("total"));
+                            MainActivity.csLibrary4A.appendToLogView("Total records for inventory " + codeInv + ": " + totalRecords);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        if (countCursor != null) countCursor.close();
+                    }
+                    
+                    // Now try to find the tag with multiple approaches
+                    boolean exists = false;
+                    String foundInColumn = null;
+                    String foundValue = null;
+                    
+                    // Try 1: Direct match on CodeImmo
+                    String query1 = "SELECT CodeImmo FROM Det_inv_immo WHERE CodeInventaire = ? AND CodeImmo = ? LIMIT 1";
+                    Cursor cursor1 = null;
+                    try {
+                        cursor1 = db.rawQuery(query1, new String[]{codeInv, tag});
+                        if (cursor1 != null && cursor1.moveToFirst()) {
+                            exists = true;
+                            foundInColumn = "CodeImmo";
+                            foundValue = cursor1.getString(cursor1.getColumnIndexOrThrow("CodeImmo"));
+                            MainActivity.csLibrary4A.appendToLogView("Found in CodeImmo: " + foundValue);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        if (cursor1 != null) cursor1.close();
+                    }
+                    
+                    // Try 2: Match on ancienCode_Corr
+                    if (!exists) {
+                        String query2 = "SELECT ancienCode_Corr FROM Det_inv_immo WHERE CodeInventaire = ? AND ancienCode_Corr = ? LIMIT 1";
+                        Cursor cursor2 = null;
+                        try {
+                            cursor2 = db.rawQuery(query2, new String[]{codeInv, tag});
+                            if (cursor2 != null && cursor2.moveToFirst()) {
+                                exists = true;
+                                foundInColumn = "ancienCode_Corr";
+                                foundValue = cursor2.getString(cursor2.getColumnIndexOrThrow("ancienCode_Corr"));
+                                MainActivity.csLibrary4A.appendToLogView("Found in ancienCode_Corr: " + foundValue);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            if (cursor2 != null) cursor2.close();
+                        }
+                    }
+                    
+                    // Try 3: Match on NumSerie_Corr
+                    if (!exists) {
+                        String query3 = "SELECT NumSerie_Corr FROM Det_inv_immo WHERE CodeInventaire = ? AND NumSerie_Corr = ? LIMIT 1";
+                        Cursor cursor3 = null;
+                        try {
+                            cursor3 = db.rawQuery(query3, new String[]{codeInv, tag});
+                            if (cursor3 != null && cursor3.moveToFirst()) {
+                                exists = true;
+                                foundInColumn = "NumSerie_Corr";
+                                foundValue = cursor3.getString(cursor3.getColumnIndexOrThrow("NumSerie_Corr"));
+                                MainActivity.csLibrary4A.appendToLogView("Found in NumSerie_Corr: " + foundValue);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            if (cursor3 != null) cursor3.close();
+                        }
+                    }
+                    
+                    // Try 4: Match on codeBarre_Corr
+                    if (!exists) {
+                        String query4 = "SELECT codeBarre_Corr FROM Det_inv_immo WHERE CodeInventaire = ? AND codeBarre_Corr = ? LIMIT 1";
+                        Cursor cursor4 = null;
+                        try {
+                            cursor4 = db.rawQuery(query4, new String[]{codeInv, tag});
+                            if (cursor4 != null && cursor4.moveToFirst()) {
+                                exists = true;
+                                foundInColumn = "codeBarre_Corr";
+                                foundValue = cursor4.getString(cursor4.getColumnIndexOrThrow("codeBarre_Corr"));
+                                MainActivity.csLibrary4A.appendToLogView("Found in codeBarre_Corr: " + foundValue);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            if (cursor4 != null) cursor4.close();
+                        }
+                    }
+                    
+                    // Try 5: If still not found, do a more flexible search to see if the tag appears partially
+                    if (!exists) {
+                        String likeQuery = "SELECT CodeImmo, ancienCode_Corr, NumSerie_Corr, codeBarre_Corr FROM Det_inv_immo WHERE CodeInventaire = ? AND " +
+                            "(CodeImmo LIKE ? OR ancienCode_Corr LIKE ? OR NumSerie_Corr LIKE ? OR codeBarre_Corr LIKE ?) LIMIT 5";
+                        String likePattern = "%" + tag + "%";
+                        Cursor likeCursor = null;
+                        try {
+                            likeCursor = db.rawQuery(likeQuery, new String[]{codeInv, likePattern, likePattern, likePattern, likePattern});
+                            if (likeCursor != null && likeCursor.moveToFirst()) {
+                                MainActivity.csLibrary4A.appendToLogView("Partial matches found for tag: " + tag);
+                                int rowCount = 0;
+                                do {
+                                    String codeImmo = likeCursor.getString(likeCursor.getColumnIndexOrThrow("CodeImmo"));
+                                    String ancienCode = likeCursor.getString(likeCursor.getColumnIndexOrThrow("ancienCode_Corr"));
+                                    String numSerie = likeCursor.getString(likeCursor.getColumnIndexOrThrow("NumSerie_Corr"));
+                                    String codeBarre = likeCursor.getString(likeCursor.getColumnIndexOrThrow("codeBarre_Corr"));
+                                    MainActivity.csLibrary4A.appendToLogView("  Match " + (++rowCount) + ": CodeImmo=" + codeImmo + 
+                                        ", ancienCode=" + ancienCode + ", numSerie=" + numSerie + ", codeBarre=" + codeBarre);
+                                } while (likeCursor.moveToNext());
+                            } else {
+                                MainActivity.csLibrary4A.appendToLogView("No matches found (exact or partial) for tag: " + tag);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            if (likeCursor != null) likeCursor.close();
+                        }
+                    }
+                    
+                    // Update the verification status
+                    updateVerificationStatusOffline(i, tag, exists);
+                    MainActivity.csLibrary4A.appendToLogView("Result for tag " + tag + ": exists=" + exists + 
+                        (exists ? ", found in " + foundInColumn + "=" + foundValue : ""));
+                }
+            }
+        }
+        db.close();
     }
 
     @Override
@@ -573,4 +793,215 @@ public class InventoryRfidiMultiFragment extends CommonFragment {
             }
         }
     };
+    private void updateVerificationStatusOffline(int position, String tag, boolean exists) {
+        View listItemView = getListView().getChildAt(position - getListView().getFirstVisiblePosition());
+
+        if (listItemView != null) {
+            ImageView verifyStatus = listItemView.findViewById(R.id.verify_status);
+            ImageButton buttonEditDetail = listItemView.findViewById(R.id.buttonEditDetail);
+            ImageButton buttonAddDetail = listItemView.findViewById(R.id.buttonAddDetail);
+
+            if (exists) {
+                // Tag found in offline database
+                verifyStatus.setImageResource(R.drawable.ic_verified);
+                verifyStatus.setVisibility(View.VISIBLE);
+                buttonEditDetail.setVisibility(View.VISIBLE);
+                buttonAddDetail.setVisibility(View.GONE);
+
+                // Set click listener for Edit button
+                buttonEditDetail.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        EditImmoFragment editFragment = EditImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
+                        getActivity().getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.content_frame, editFragment)
+                                .addToBackStack("edit_immo")
+                                .commit();
+                    }
+                });
+            } else {
+                // Tag not found in offline database
+                verifyStatus.setImageResource(R.drawable.ic_not_found);
+                verifyStatus.setVisibility(View.VISIBLE);
+                buttonAddDetail.setVisibility(View.VISIBLE);
+                buttonEditDetail.setVisibility(View.GONE);
+
+                // Set click listener for Add button
+                buttonAddDetail.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        AddImmoFragment addFragment = AddImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
+                        getActivity().getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.content_frame, addFragment)
+                                .addToBackStack("add_immo")
+                                .commit();
+                    }
+                });
+            }
+
+            readerListAdapter.notifyDataSetChanged();
+        }
+    }
+
+    // Update the VerifyTagTask class to handle the new response structure
+    private class VerifyTagTask extends AsyncTask<Void, Void, JSONObject> {
+        private int position;
+        private String tag;
+
+        public VerifyTagTask(int position, String tag) {
+            this.position = position;
+            this.tag = tag;
+        }
+
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
+            HttpURLConnection connection = null;
+            try {
+                String baseUrl = SharedPrefManager.getInstance(getContext()).getServerUrl();
+                String urlString = baseUrl + "api-inv-search-cod.awp?log=" + token + "&inv=" + codeInv + "&code=" + tag;
+
+                URL url = new URL(urlString);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+
+                int responseCode = connection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
+
+                    return new JSONObject(response.toString());
+                } else {
+                    // Return an error JSON object
+                    JSONObject errorObj = new JSONObject();
+                    errorObj.put("sRes", "error");
+                    return errorObj;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                try {
+                    JSONObject errorObj = new JSONObject();
+                    errorObj.put("sRes", "error");
+                    return errorObj;
+                } catch (Exception ex) {
+                    return null;
+                }
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject result) {
+            if (getActivity() != null && result != null) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateVerificationStatus(position, tag, result);
+                    }
+                });
+            }
+        }
+    }
+
+    private void updateVerificationStatus(int position, String tag, JSONObject result) {
+        View listItemView = getListView().getChildAt(position - getListView().getFirstVisiblePosition());
+
+        if (listItemView != null) {
+            ImageView verifyStatus = listItemView.findViewById(R.id.verify_status);
+            ImageButton buttonEditDetail = listItemView.findViewById(R.id.buttonEditDetail);
+            ImageButton buttonAddDetail = listItemView.findViewById(R.id.buttonAddDetail);
+
+            try {
+                String sRes = result.getString("sRes");
+
+                if ("ok".equals(sRes)) {
+                    JSONObject tabSrch = result.getJSONObject("tab_srch");
+                    String codeImmo = tabSrch.optString("CodeImmo", "");
+                    String codeArticle = tabSrch.optString("codeArticle", "");
+                    String codeBarreInv = tabSrch.optString("codeBarre_inv", "");
+                    String numSerieInv = tabSrch.optString("num_serie_inv", "");
+                    String ancienCodeInv = tabSrch.optString("ancien_code_inv", "");
+                    String lib = tabSrch.optString("lib", "");
+
+                    if ("".equals(codeImmo) && "".equals(codeArticle) && "".equals(codeBarreInv) &&
+                            "".equals(numSerieInv) && "".equals(ancienCodeInv) && "".equals(lib)) {
+                        verifyStatus.setImageResource(R.drawable.ic_not_found);
+                        verifyStatus.setVisibility(View.VISIBLE);
+                        buttonAddDetail.setVisibility(View.VISIBLE);
+                        buttonEditDetail.setVisibility(View.GONE);
+
+                        // Gestionnaire pour le bouton AddDetail
+                        buttonAddDetail.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                AddImmoFragment addFragment = AddImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
+                                getActivity().getSupportFragmentManager().beginTransaction()
+                                        .replace(R.id.content_frame, addFragment)
+                                        .addToBackStack("add_immo")
+                                        .commit();
+                            }
+                        });
+                    } else {
+                        verifyStatus.setImageResource(R.drawable.ic_verified);
+                        verifyStatus.setVisibility(View.VISIBLE);
+                        buttonEditDetail.setVisibility(View.VISIBLE);
+                        buttonAddDetail.setVisibility(View.GONE);
+
+                        // Gestionnaire pour le bouton EditDetail
+                        buttonEditDetail.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                EditImmoFragment editFragment = EditImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
+                                getActivity().getSupportFragmentManager().beginTransaction()
+                                        .replace(R.id.content_frame, editFragment)
+                                        .addToBackStack("edit_immo")
+                                        .commit();
+                            }
+                        });
+                    }
+                } else if ("non trouvé".equals(sRes)) {
+                    verifyStatus.setImageResource(R.drawable.ic_not_found);
+                    verifyStatus.setVisibility(View.VISIBLE);
+                    buttonAddDetail.setVisibility(View.VISIBLE);
+                    buttonEditDetail.setVisibility(View.GONE);
+
+                    buttonAddDetail.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            AddImmoFragment addFragment = AddImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
+                            getActivity().getSupportFragmentManager().beginTransaction()
+                                    .replace(R.id.content_frame, addFragment)
+                                    .addToBackStack(null)
+                                    .commit();
+                        }
+                    });
+                } else {
+                    verifyStatus.setImageResource(R.drawable.ic_pending);
+                    verifyStatus.setVisibility(View.GONE);
+                    buttonAddDetail.setVisibility(View.GONE);
+                    buttonEditDetail.setVisibility(View.GONE);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                verifyStatus.setImageResource(R.drawable.ic_pending);
+                verifyStatus.setVisibility(View.GONE);
+                buttonAddDetail.setVisibility(View.GONE);
+                buttonEditDetail.setVisibility(View.GONE);
+            }
+
+            readerListAdapter.notifyDataSetChanged();
+        }
+    }
+    private ListView getListView() {
+        return rfidListView;
+    }
 }

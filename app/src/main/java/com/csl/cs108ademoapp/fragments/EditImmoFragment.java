@@ -277,7 +277,7 @@ public class EditImmoFragment extends Fragment {
                 
                 String query = "SELECT DISTINCT " +
                     "Inv_EquipeInventaire.CodeEmplacement AS CodeEmplacement, " +
-                    "ArbreEmp.Libelle AS Libelle " +
+                    "ArbreEmp.path AS Libelle " +
                     "FROM Inv_EquipeInventaire, ArbreEmp " +
                     "WHERE Inv_EquipeInventaire.CodeEmplacement = ArbreEmp.code " +
                     "AND ArbreEmp.Idparent <> '#' " +
@@ -620,7 +620,7 @@ public class EditImmoFragment extends Fragment {
                         emplacementCodeList.clear();
                         for (int i = 0; i < tabEmpl.length(); i++) {
                             JSONObject obj = tabEmpl.getJSONObject(i);
-                            emplacementList.add(obj.getString("sNom"));
+                            emplacementList.add(obj.getString("sPath"));
                             emplacementCodeList.add(obj.getString("sCode"));
                         }
                         

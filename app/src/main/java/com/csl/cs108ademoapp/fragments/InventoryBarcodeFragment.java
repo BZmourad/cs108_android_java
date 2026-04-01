@@ -23,6 +23,8 @@ import com.csl.cslibrary4a.NotificationConnector;
 import com.csl.cslibrary4a.ReaderDevice;
 
 import java.util.Collections;
+import com.csl.cs108ademoapp.apps.SharedPrefManager;
+import android.content.Context;
 
 public class InventoryBarcodeFragment extends CommonFragment {
     private ListView barcodeListView;
@@ -30,6 +32,12 @@ public class InventoryBarcodeFragment extends CommonFragment {
     private TextView barcodeRunTime, barcodeVoltageLevel;
     private TextView barcodeYieldView, barcodeTotal;
     private Button button;
+
+    private String codeInv;
+    private String codeMission;
+    private String equipe;
+    private String token;
+    public Context ctx;
 
     MediaPlayer playerO, playerN;
 
@@ -90,7 +98,13 @@ public class InventoryBarcodeFragment extends CommonFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
+        ctx = getActivity();
+        token = SharedPrefManager.getInstance(ctx).getToken();
+        if (getArguments() != null) {
+            codeInv = getArguments().getString("codeInv");
+            codeMission = getArguments().getString("codeMission");
+            equipe = getArguments().getString("equipe");
+        }
         barcodeListView = (ListView) getActivity().findViewById(R.id.inventoryBarcodeList);
         barcodeEmptyView = (TextView) getActivity().findViewById(R.id.inventoryBarcodeEmpty);
         barcodeListView.setEmptyView(barcodeEmptyView);
@@ -164,6 +178,16 @@ public class InventoryBarcodeFragment extends CommonFragment {
     public void onDestroy() {
         MainActivity.csLibrary4A.setAutoBarStartSTop(false); MainActivity.csLibrary4A.setNotificationListener(null);
         super.onDestroy();
+    }
+
+    public static InventoryBarcodeFragment newInstance(String codeInv, String codeMission, String equipe) {
+        InventoryBarcodeFragment myFragment = new InventoryBarcodeFragment();
+        Bundle args = new Bundle();
+        args.putString("codeInv", codeInv);
+        args.putString("codeMission", codeMission);
+        args.putString("equipe", equipe);
+        myFragment.setArguments(args);
+        return myFragment;
     }
 
     boolean userVisibleHint = false;
