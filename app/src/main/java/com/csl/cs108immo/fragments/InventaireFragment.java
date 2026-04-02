@@ -43,6 +43,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import android.widget.EditText;
+import android.text.TextWatcher;
+import android.text.Editable;
+import android.widget.Filter;
+import android.widget.Filterable;
+import java.util.Locale;
 
 public class InventaireFragment extends CommonFragment {
     boolean is_online = false;
@@ -290,18 +296,6 @@ public class InventaireFragment extends CommonFragment {
             return convertView;
         }
 
-        /*private void openInventoryFragment(String codeInv, String codeMission, String equipe) {
-            InventoryFragment inventoryFragment = new InventoryFragment();
-            // Passer les paramètres via Bundle
-            Bundle args = new Bundle();
-            args.putString("codeInv", codeInv);
-            args.putString("codeMission", codeMission);
-            args.putString("equipe", equipe);
-            inventoryFragment.setArguments(args);
-            getActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.content_frame, inventoryFragment).addToBackStack(null).commit();
-        }*/
-
         class ViewHolder {
             TextView textViewCodeInv;
             TextView textViewCodeMission;
@@ -327,6 +321,7 @@ public class InventaireFragment extends CommonFragment {
             ListView listViewEmplacements = dialogView.findViewById(R.id.listViewEmplacements);
             ProgressBar progressBar = dialogView.findViewById(R.id.progressBar);
             TextView textViewEmpty = dialogView.findViewById(R.id.textViewEmpty);
+            EditText editTextSearch = dialogView.findViewById(R.id.editTextSearch);
             
             AlertDialog dialog = builder.create();
             dialog.show();
@@ -342,33 +337,33 @@ public class InventaireFragment extends CommonFragment {
             
             // Charger les emplacements
             loadEmplacementsForPopup(context, codeInv, codeMission, equipe, 
-                listViewEmplacements, progressBar, textViewEmpty, dialog, 
+                listViewEmplacements, progressBar, textViewEmpty, editTextSearch, dialog, 
                 codeInv, codeMission, equipe);
         }
 
         private void loadEmplacementsForPopup(Context context, String codeInv, String codeMission, 
-                                            String equipe, ListView listView, ProgressBar progressBar,
-                                            TextView textViewEmpty, AlertDialog dialog,
-                                            String finalCodeInv, String finalCodeMission, String finalEquipe) {
-            
+                                    String equipe, ListView listView, ProgressBar progressBar,
+                                    TextView textViewEmpty, EditText editTextSearch, AlertDialog dialog,
+                                    String finalCodeInv, String finalCodeMission, String finalEquipe) {
+    
             boolean isOnline = SharedPrefManager.getInstance(context).isOnlineMode();
             
             if (isOnline) {
                 loadEmplacementsOnlineForPopup(context, codeInv, codeMission, equipe, 
-                    listView, progressBar, textViewEmpty, dialog, 
+                    listView, progressBar, textViewEmpty, editTextSearch, dialog, 
                     finalCodeInv, finalCodeMission, finalEquipe);
             } else {
                 loadEmplacementsOfflineForPopup(context, codeInv, codeMission, equipe, 
-                    listView, progressBar, textViewEmpty, dialog, 
+                    listView, progressBar, textViewEmpty, editTextSearch, dialog, 
                     finalCodeInv, finalCodeMission, finalEquipe);
             }
         }
 
         private void loadEmplacementsOnlineForPopup(Context context, String codeInv, String codeMission, 
-                                            String equipe, ListView listView, ProgressBar progressBar,
-                                            TextView textViewEmpty, AlertDialog dialog,
-                                            String finalCodeInv, String finalCodeMission, String finalEquipe) {
-    
+                                                    String equipe, ListView listView, ProgressBar progressBar,
+                                                    TextView textViewEmpty, EditText editTextSearch, AlertDialog dialog,
+                                                    String finalCodeInv, String finalCodeMission, String finalEquipe) {
+            
             new Thread(() -> {
                 try {
                     String token = SharedPrefManager.getInstance(context).getToken();
@@ -429,14 +424,31 @@ public class InventaireFragment extends CommonFragment {
                         if (finalEmplacements.isEmpty()) {
                             textViewEmpty.setVisibility(View.VISIBLE);
                             textViewEmpty.setText("Aucun emplacement trouvé");
+                            editTextSearch.setVisibility(View.GONE);
                         } else {
                             textViewEmpty.setVisibility(View.GONE);
                             listView.setVisibility(View.VISIBLE);
+                            editTextSearch.setVisibility(View.VISIBLE);
+                            
                             EmplacementAdapter adapter = new EmplacementAdapter(context, finalEmplacements);
                             listView.setAdapter(adapter);
                             
+                            // Ajouter le TextWatcher pour le filtre
+                            editTextSearch.addTextChangedListener(new TextWatcher() {
+                                @Override
+                                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                                
+                                @Override
+                                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                    adapter.getFilter().filter(s);
+                                }
+                                
+                                @Override
+                                public void afterTextChanged(Editable s) {}
+                            });
+                            
                             listView.setOnItemClickListener((parent, view, position, id) -> {
-                                EmplacementItem selected = finalEmplacements.get(position);
+                                EmplacementItem selected = (EmplacementItem) adapter.getItem(position);
                                 dialog.dismiss();
                                 navigateToInventoryFragment(finalCodeInv, finalCodeMission, finalEquipe, selected.getCode());
                             });
@@ -449,6 +461,7 @@ public class InventaireFragment extends CommonFragment {
                         progressBar.setVisibility(View.GONE);
                         textViewEmpty.setVisibility(View.VISIBLE);
                         textViewEmpty.setText("Erreur: " + e.getMessage());
+                        editTextSearch.setVisibility(View.GONE);
                         Toast.makeText(context, "Erreur chargement emplacements: " + e.getMessage(), Toast.LENGTH_LONG).show();
                     });
                 }
@@ -457,7 +470,7 @@ public class InventaireFragment extends CommonFragment {
 
         private void loadEmplacementsOfflineForPopup(Context context, String codeInv, String codeMission, 
                                             String equipe, ListView listView, ProgressBar progressBar,
-                                            TextView textViewEmpty, AlertDialog dialog,
+                                            TextView textViewEmpty, EditText editTextSearch, AlertDialog dialog,
                                             String finalCodeInv, String finalCodeMission, String finalEquipe) {
     
             new Thread(() -> {
@@ -501,14 +514,31 @@ public class InventaireFragment extends CommonFragment {
                     if (finalEmplacements.isEmpty()) {
                         textViewEmpty.setVisibility(View.VISIBLE);
                         textViewEmpty.setText("Aucun emplacement trouvé dans la base");
+                        editTextSearch.setVisibility(View.GONE);
                     } else {
                         textViewEmpty.setVisibility(View.GONE);
                         listView.setVisibility(View.VISIBLE);
+                        editTextSearch.setVisibility(View.VISIBLE);
+                        
                         EmplacementAdapter adapter = new EmplacementAdapter(context, finalEmplacements);
                         listView.setAdapter(adapter);
                         
+                        // Ajouter le TextWatcher pour le filtre
+                        editTextSearch.addTextChangedListener(new TextWatcher() {
+                            @Override
+                            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                            
+                            @Override
+                            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                adapter.getFilter().filter(s);
+                            }
+                            
+                            @Override
+                            public void afterTextChanged(Editable s) {}
+                        });
+                        
                         listView.setOnItemClickListener((parent, view, position, id) -> {
-                            EmplacementItem selected = finalEmplacements.get(position);
+                            EmplacementItem selected = (EmplacementItem) adapter.getItem(position);
                             dialog.dismiss();
                             navigateToInventoryFragment(finalCodeInv, finalCodeMission, finalEquipe, selected.getCode());
                         });
@@ -546,24 +576,33 @@ public class InventaireFragment extends CommonFragment {
             public String getLibelle() { return libelle; }
         }
 
-        // Adapter pour la liste des emplacements
-        private class EmplacementAdapter extends BaseAdapter {
+        // Adapter pour la liste des emplacements (avec filtre)
+        private class EmplacementAdapter extends BaseAdapter implements Filterable {
             private Context context;
             private List<EmplacementItem> items;
+            private List<EmplacementItem> filteredItems;
+            private EmplacementFilter emplacementFilter;
             
             public EmplacementAdapter(Context context, List<EmplacementItem> items) {
                 this.context = context;
                 this.items = items;
+                this.filteredItems = new ArrayList<>(items);
             }
             
             @Override
-            public int getCount() { return items.size(); }
+            public int getCount() { 
+                return filteredItems != null ? filteredItems.size() : 0; 
+            }
             
             @Override
-            public Object getItem(int position) { return items.get(position); }
+            public Object getItem(int position) { 
+                return filteredItems != null ? filteredItems.get(position) : null; 
+            }
             
             @Override
-            public long getItemId(int position) { return position; }
+            public long getItemId(int position) { 
+                return position; 
+            }
             
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
@@ -572,7 +611,7 @@ public class InventaireFragment extends CommonFragment {
                         .inflate(android.R.layout.simple_list_item_2, parent, false);
                 }
                 
-                EmplacementItem item = items.get(position);
+                EmplacementItem item = filteredItems.get(position);
                 TextView text1 = convertView.findViewById(android.R.id.text1);
                 TextView text2 = convertView.findViewById(android.R.id.text2);
                 
@@ -581,6 +620,52 @@ public class InventaireFragment extends CommonFragment {
                 text2.setTextSize(12);
                 
                 return convertView;
+            }
+            
+            @Override
+            public Filter getFilter() {
+                if (emplacementFilter == null) {
+                    emplacementFilter = new EmplacementFilter();
+                }
+                return emplacementFilter;
+            }
+            
+            private class EmplacementFilter extends Filter {
+                @Override
+                protected FilterResults performFiltering(CharSequence constraint) {
+                    FilterResults results = new FilterResults();
+                    List<EmplacementItem> filteredList = new ArrayList<>();
+                    
+                    if (constraint == null || constraint.length() == 0) {
+                        // Pas de filtre, retourner toute la liste
+                        filteredList.addAll(items);
+                    } else {
+                        String filterPattern = constraint.toString().toLowerCase(Locale.getDefault()).trim();
+                        for (EmplacementItem item : items) {
+                            // Rechercher dans le libellé et le code
+                            if (item.getLibelle().toLowerCase(Locale.getDefault()).contains(filterPattern) ||
+                                item.getCode().toLowerCase(Locale.getDefault()).contains(filterPattern)) {
+                                filteredList.add(item);
+                            }
+                        }
+                    }
+                    
+                    results.values = filteredList;
+                    results.count = filteredList.size();
+                    return results;
+                }
+                
+                @Override
+                protected void publishResults(CharSequence constraint, FilterResults results) {
+                    filteredItems = (List<EmplacementItem>) results.values;
+                    notifyDataSetChanged();
+                }
+            }
+            
+            public void updateData(List<EmplacementItem> newItems) {
+                this.items = newItems;
+                this.filteredItems = new ArrayList<>(newItems);
+                notifyDataSetChanged();
             }
         }
     }
