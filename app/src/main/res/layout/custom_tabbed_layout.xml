@@ -6,10 +6,34 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <LinearLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:background="@color/colorBlue01">
+
+        <TextView
+            android:id="@+id/textViewEmplacement"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Emplacement: "
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:padding="8dp"
+            android:layout_margin="8dp"
+            android:background="#40000000" />
+
+    </LinearLayout>
+
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/OperationsTabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@id/headerLayout"
         android:background="@color/colorBlue01"
         android:elevation="6dp"
         android:minHeight="?attr/actionBarSize"

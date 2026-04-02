@@ -1,4 +1,4 @@
-package com.csl.cs108ademoapp.fragments;
+package com.csl.cs108immo.fragments;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,10 +19,10 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.csl.cs108ademoapp.CustomPopupWindow;
-import com.csl.cs108ademoapp.MainActivity;
-import com.csl.cs108ademoapp.R;
-import com.csl.cs108ademoapp.SettingTask;
+import com.csl.cs108immo.CustomPopupWindow;
+import com.csl.cs108immo.MainActivity;
+import com.csl.cs108immo.R;
+import com.csl.cs108immo.SettingTask;
 import com.csl.cslibrary4a.RfidReaderChipData;
 
 public class SettingAdminFragment extends CommonFragment {

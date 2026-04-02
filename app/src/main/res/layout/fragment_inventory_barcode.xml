@@ -43,8 +43,8 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="13"
+        android:layout_height="50dp"
+
         android:baselineAligned="false"
         android:orientation="horizontal">
 
@@ -72,5 +72,39 @@
             android:layout_height="match_parent"
             android:gravity="center"
             style="@style/style_button_font_2" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center|bottom"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/verifyBarcodeButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            style="@style/style_button_font"
+            android:textSize="15sp"
+            android:text="Vérifier" />
+
+        <Button
+            android:id="@+id/clearListBarcodeButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            style="@style/style_button_font"
+            android:textSize="15sp"
+            android:text="Vider" />
+
+        <Button
+            android:id="@+id/settingBarcodeButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            style="@style/style_button_font"
+            android:textSize="15sp"
+            android:text="Paramétre" />
+
     </LinearLayout>
 </LinearLayout>

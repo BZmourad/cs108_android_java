@@ -17,7 +17,16 @@
             android:layout_weight="15"
             android:layout_height="wrap_content"
             android:gravity="center"
+            android:visibility="gone"
             style="@style/style_small_font" />
+
+        <ImageView
+            android:id="@+id/verify_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:visibility="gone"
+            android:src="@drawable/ic_pending"/>
 
         <TextView
             android:id="@+id/reader_checkedtextview"
@@ -27,6 +36,30 @@
             android:checkMark="?android:attr/listChoiceIndicatorMultiple"
             android:clickable="false"
             android:gravity="center_vertical" />
+
+        <ImageButton
+            android:id="@+id/buttonEditDetail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingHorizontal="7dp"
+            android:paddingVertical="5dp"
+            android:src="@drawable/ic_edit"
+            android:contentDescription="Edit"
+            android:visibility="gone"
+            />
+
+        <ImageButton
+            android:id="@+id/buttonAddDetail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingHorizontal="7dp"
+            android:paddingVertical="5dp"
+            android:src="@drawable/ic_add"
+            android:contentDescription="Add"
+            android:visibility="gone"
+            />
 
         <TextView
             android:id="@+id/reader_rssi"

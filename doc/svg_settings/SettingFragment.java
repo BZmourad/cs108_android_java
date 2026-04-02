@@ -1,4 +1,4 @@
-package com.csl.cs108ademoapp.fragments;
+package com.csl.cs108immo.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -13,9 +13,9 @@ import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import com.csl.cs108ademoapp.MainActivity;
+import com.csl.cs108immo.MainActivity;
 import com.csl.cslibrary4a.AdapterTab;
-import com.csl.cs108ademoapp.R;
+import com.csl.cs108immo.R;
 import com.google.android.material.tabs.TabLayout;
 
 public class SettingFragment extends CommonFragment {
