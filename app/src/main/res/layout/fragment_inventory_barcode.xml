@@ -5,6 +5,31 @@
     android:paddingRight="0dp"
     android:orientation="vertical">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/manualBarcodeInput"
+            android:layout_width="0dp"
+            android:layout_weight="3"
+            android:layout_height="wrap_content"
+            android:hint="Entrez le code-barres"
+            android:inputType="text"
+            android:padding="15dp"
+            android:background="@android:drawable/editbox_background" />
+
+        <Button
+            android:id="@+id/addBarcodeButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Add"
+            style="@style/style_button_font"
+            android:textSize="12sp" />
+    </LinearLayout>
+
     <ListView
         android:id="@+id/inventoryBarcodeList"
         android:layout_width="match_parent"

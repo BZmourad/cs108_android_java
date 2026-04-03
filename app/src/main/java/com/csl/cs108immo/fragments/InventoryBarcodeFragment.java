@@ -165,6 +165,45 @@ public class InventoryBarcodeFragment extends CommonFragment {
             }
         });
 
+        // NOUVEAU: Gestion de l'ajout manuel de code-barres
+        final EditText manualBarcodeInput = (EditText) getActivity().findViewById(R.id.manualBarcodeInput);
+        Button addBarcodeButton = (Button) getActivity().findViewById(R.id.addBarcodeButton);
+
+        addBarcodeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String barcode = manualBarcodeInput.getText().toString().trim();
+                
+                if (barcode.isEmpty()) {
+                    Toast.makeText(getActivity(), "Veuillez entrer un code-barres", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                // Vérifier les doublons
+                for (ReaderDevice device : MainActivity.sharedObjects.barsList) {
+                    if (device.getAddress() != null && device.getAddress().equals(barcode)) {
+                        Toast.makeText(getActivity(), "Code-barres déjà existant", Toast.LENGTH_SHORT).show();
+                        manualBarcodeInput.setText("");
+                        return;
+                    }
+                }
+                
+                // Créer et ajouter le nouveau device
+                ReaderDevice newDevice = new ReaderDevice(barcode, barcode, false, "", 0, 0.0);
+                MainActivity.sharedObjects.barsList.add(newDevice);
+                readerListAdapter.notifyDataSetChanged();
+                
+                // Mettre à jour l'affichage
+                if (barcodeTotal != null) {
+                    barcodeTotal.setText(String.valueOf(MainActivity.sharedObjects.barsList.size()));
+                }
+                
+                manualBarcodeInput.setText("");
+                Toast.makeText(getActivity(), "✓ " + barcode + " ajouté", Toast.LENGTH_SHORT).show();
+                barcodeListView.smoothScrollToPosition(MainActivity.sharedObjects.barsList.size() - 1);
+            }
+        });
+
         barcodeRunTime = (TextView) getActivity().findViewById(R.id.inventoryBarcodeRunTime);
         barcodeVoltageLevel = (TextView) getActivity().findViewById(R.id.inventoryBarcodeVoltageLevel);
 
@@ -208,16 +247,16 @@ public class InventoryBarcodeFragment extends CommonFragment {
                     getActivity().getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                     SettingFragment settingFragment = new SettingFragment();
                     getParentFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.content_frame, settingFragment, TAG_CONTENT_FRAGMENT)
-                        .addToBackStack(null)
-                        .commit();
+                            .beginTransaction()
+                            .replace(R.id.content_frame, settingFragment, TAG_CONTENT_FRAGMENT)
+                            .addToBackStack(null)
+                            .commit();
                 }
             });
         }
 
         MainActivity.csLibrary4A.getBarcodePreSuffix();
-        
+
     }
 
     @Override
@@ -322,89 +361,16 @@ public class InventoryBarcodeFragment extends CommonFragment {
         return barcodeListView;
     }
 
-    /*private void verifyTagsList() {
-        if (readerListAdapter != null) {
-            for (int i = 0; i < readerListAdapter.getCount(); i++) {
-                ReaderDevice device = readerListAdapter.getItem(i);
-                if (device != null) {
-                    String tag = device.getAddress();
-                    MainActivity.csLibrary4A.appendToLogView("Vérification tag " + i + ": " + tag);
-                    new VerifyTagTask(i, tag).execute();
-                }
-            }
-        }
-    }
-
-    private void verifyTagsListOffline() {
-        DatabaseHelper dbHelper = new DatabaseHelper(ctx);
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
-        if (readerListAdapter != null) {
-            for (int i = 0; i < readerListAdapter.getCount(); i++) {
-                ReaderDevice device = readerListAdapter.getItem(i);
-                if (device != null) {
-                    String tag = device.getAddress();
-                    MainActivity.csLibrary4A.appendToLogView("Vérification offline tag " + i + ": " + tag);
-                    
-                    // Rechercher le tag dans la base offline
-                    String query = "SELECT Det_inv_immo.CodeImmo, Det_inv_immo.codeEmpInv, Inv_EquipeInventaire.CodeEmplacement " +
-                        "FROM Det_inv_immo " +
-                        "LEFT JOIN Inv_EquipeInventaire ON Det_inv_immo.CodeInventaire = Inv_EquipeInventaire.Codeinv " +
-                        "AND Det_inv_immo.codeMission = Inv_EquipeInventaire.codemission " +
-                        "WHERE Det_inv_immo.CodeInventaire = ? " +
-                        "AND (Det_inv_immo.CodeImmo = ? " +
-                        "OR Det_inv_immo.ancienCode_Corr = ? " +
-                        "OR Det_inv_immo.NumSerie_Corr = ? " +
-                        "OR Det_inv_immo.codeBarre_Corr = ?) " +
-                        "LIMIT 1";
-                    
-                    String[] args = {codeInv, tag, tag, tag, tag};
-                    Cursor cursor = null;
-                    String foundInLocation = null;
-                    String expectedLocation = null;
-                    boolean found = false;
-                    
-                    try {
-                        cursor = db.rawQuery(query, args);
-                        if (cursor != null && cursor.moveToFirst()) {
-                            found = true;
-                            foundInLocation = cursor.getString(cursor.getColumnIndexOrThrow("codeEmpInv"));
-                            expectedLocation = cursor.getString(cursor.getColumnIndexOrThrow("CodeEmplacement"));
-                            MainActivity.csLibrary4A.appendToLogView("Tag trouvé - codeEmpInv: " + foundInLocation + ", attendu: " + expectedLocation);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    } finally {
-                        if (cursor != null) cursor.close();
-                    }
-                    
-                    // Déterminer le statut
-                    int status;
-                    if (!found) {
-                        status = 0; // NOT FOUND
-                    } else if (foundInLocation != null && foundInLocation.equals(codeEmplacement)) {
-                        status = 1; // FOUND IN CORRECT LOCATION
-                    } else {
-                        status = 2; // FOUND IN WRONG LOCATION
-                    }
-                    
-                    updateVerificationStatusOffline(i, tag, status, foundInLocation, expectedLocation);
-                }
-            }
-        }
-        db.close();
-    }*/
-
     private void updateVerificationStatusOffline(int position, String tag, int status, String foundInLocation, String expectedLocation) {
         View listItemView = getListView().getChildAt(position - getListView().getFirstVisiblePosition());
-        
+
         if (listItemView != null) {
             ImageView verifyStatus = listItemView.findViewById(R.id.verify_status);
             ImageButton buttonEditDetail = listItemView.findViewById(R.id.buttonEditDetail);
             ImageButton buttonAddDetail = listItemView.findViewById(R.id.buttonAddDetail);
-            
 
-            
+
+
             switch (status) {
                 case 0: // NOT FOUND
                     verifyStatus.setImageResource(R.drawable.ic_not_found);
@@ -412,215 +378,52 @@ public class InventoryBarcodeFragment extends CommonFragment {
                     buttonAddDetail.setVisibility(View.VISIBLE);
                     buttonEditDetail.setVisibility(View.GONE);
 
-                    
+
                     buttonAddDetail.setOnClickListener(v -> {
                         AddImmoFragment addFragment = AddImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
                         getActivity().getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.content_frame, addFragment)
-                            .addToBackStack("add_immo")
-                            .commit();
+                                .replace(R.id.content_frame, addFragment)
+                                .addToBackStack("add_immo")
+                                .commit();
                     });
                     break;
-                    
+
                 case 1: // FOUND IN CORRECT LOCATION
                     verifyStatus.setImageResource(R.drawable.ic_verified);
                     verifyStatus.setVisibility(View.VISIBLE);
                     buttonEditDetail.setVisibility(View.VISIBLE);
                     buttonAddDetail.setVisibility(View.GONE);
 
-                    
+
                     buttonEditDetail.setOnClickListener(v -> {
                         EditImmoFragment editFragment = EditImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
                         getActivity().getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.content_frame, editFragment)
-                            .addToBackStack("edit_immo")
-                            .commit();
+                                .replace(R.id.content_frame, editFragment)
+                                .addToBackStack("edit_immo")
+                                .commit();
                     });
                     break;
-                    
+
                 case 2: // FOUND IN WRONG LOCATION
                     verifyStatus.setImageResource(R.drawable.ic_warning);
                     verifyStatus.setVisibility(View.VISIBLE);
                     buttonEditDetail.setVisibility(View.VISIBLE);
                     buttonAddDetail.setVisibility(View.GONE);
 
-                    
+
                     buttonEditDetail.setOnClickListener(v -> {
                         EditImmoFragment editFragment = EditImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
                         getActivity().getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.content_frame, editFragment)
-                            .addToBackStack("edit_immo")
-                            .commit();
+                                .replace(R.id.content_frame, editFragment)
+                                .addToBackStack("edit_immo")
+                                .commit();
                     });
                     break;
             }
-            
+
             readerListAdapter.notifyDataSetChanged();
         }
     }
-
-    /*private class VerifyTagTask extends AsyncTask<Void, Void, JSONObject> {
-        private int position;
-        private String tag;
-        private int status;
-        private String foundLocation;
-        private String expectedLocation;
-
-        public VerifyTagTask(int position, String tag) {
-            this.position = position;
-            this.tag = tag;
-        }
-
-        @Override
-        protected JSONObject doInBackground(Void... voids) {
-            HttpURLConnection connection = null;
-            try {
-                String baseUrl = SharedPrefManager.getInstance(getContext()).getServerUrl();
-                String urlString = baseUrl + "api-inv-search-cod.awp?log=" + token + "&inv=" + codeInv + "&code=" + tag;
-
-                URL url = new URL(urlString);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(5000);
-                connection.setReadTimeout(5000);
-
-                int responseCode = connection.getResponseCode();
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    StringBuilder response = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        response.append(line);
-                    }
-                    reader.close();
-                    return new JSONObject(response.toString());
-                } else {
-                    JSONObject errorObj = new JSONObject();
-                    errorObj.put("sRes", "error");
-                    return errorObj;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                try {
-                    JSONObject errorObj = new JSONObject();
-                    errorObj.put("sRes", "error");
-                    return errorObj;
-                } catch (Exception ex) {
-                    return null;
-                }
-            } finally {
-                if (connection != null) {
-                    connection.disconnect();
-                }
-            }
-        }
-
-        @Override
-        protected void onPostExecute(JSONObject result) {
-            if (getActivity() != null && result != null) {
-                getActivity().runOnUiThread(() -> {
-                    try {
-                        String sRes = result.getString("sRes");
-                        String foundInLocation = null;
-                        String expectedLocation = null;
-                        boolean found = false;
-                        
-                        if ("ok".equals(sRes) && result.has("tab_srch")) {
-                            JSONObject tabSrch = result.getJSONObject("tab_srch");
-                            String codeImmo = tabSrch.optString("CodeImmo", "");
-                            String codeEmpInv = tabSrch.optString("codeEmpInv", "");
-                            
-                            if (!"".equals(codeImmo)) {
-                                found = true;
-                                foundInLocation = codeEmpInv;
-                                expectedLocation = codeEmplacement;
-                                
-                                MainActivity.csLibrary4A.appendToLogView("API: Tag trouvé - codeEmpInv: " + foundInLocation + ", attendu: " + expectedLocation);
-                            }
-                        }
-                        
-                        // Déterminer le statut
-                        int status;
-                        if (!found) {
-                            status = 0; // NOT FOUND
-                        } else if (foundInLocation != null && foundInLocation.equals(codeEmplacement)) {
-                            status = 1; // FOUND IN CORRECT LOCATION
-                        } else {
-                            status = 2; // FOUND IN WRONG LOCATION
-                        }
-                        
-                        updateVerificationStatus(position, tag, status, foundInLocation, expectedLocation);
-                        
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        updateVerificationStatus(position, tag, 0, null, null);
-                    }
-                });
-            }
-        }
-    }
-
-    private void updateVerificationStatus(int position, String tag, int status, String foundInLocation, String expectedLocation) {
-        View listItemView = getListView().getChildAt(position - getListView().getFirstVisiblePosition());
-        
-        if (listItemView != null) {
-            ImageView verifyStatus = listItemView.findViewById(R.id.verify_status);
-            ImageButton buttonEditDetail = listItemView.findViewById(R.id.buttonEditDetail);
-            ImageButton buttonAddDetail = listItemView.findViewById(R.id.buttonAddDetail);
-            
-            switch (status) {
-                case 0: // NOT FOUND
-                    verifyStatus.setImageResource(R.drawable.ic_not_found);
-                    verifyStatus.setVisibility(View.VISIBLE);
-                    buttonAddDetail.setVisibility(View.VISIBLE);
-                    buttonEditDetail.setVisibility(View.GONE);
-
-                    
-                    buttonAddDetail.setOnClickListener(v -> {
-                        AddImmoFragment addFragment = AddImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
-                        getActivity().getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.content_frame, addFragment)
-                            .addToBackStack("add_immo")
-                            .commit();
-                    });
-                    break;
-                    
-                case 1: // FOUND IN CORRECT LOCATION
-                    verifyStatus.setImageResource(R.drawable.ic_verified);
-                    verifyStatus.setVisibility(View.VISIBLE);
-                    buttonEditDetail.setVisibility(View.VISIBLE);
-                    buttonAddDetail.setVisibility(View.GONE);
-
-                    
-                    buttonEditDetail.setOnClickListener(v -> {
-                        EditImmoFragment editFragment = EditImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
-                        getActivity().getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.content_frame, editFragment)
-                            .addToBackStack("edit_immo")
-                            .commit();
-                    });
-                    break;
-                    
-                case 2: // FOUND IN WRONG LOCATION
-                    verifyStatus.setImageResource(R.drawable.ic_warning);
-                    verifyStatus.setVisibility(View.VISIBLE);
-                    buttonEditDetail.setVisibility(View.VISIBLE);
-                    buttonAddDetail.setVisibility(View.GONE);
-
-                    
-                    buttonEditDetail.setOnClickListener(v -> {
-                        EditImmoFragment editFragment = EditImmoFragment.newInstance(tag, codeInv, codeMission, equipe);
-                        getActivity().getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.content_frame, editFragment)
-                            .addToBackStack("edit_immo")
-                            .commit();
-                    });
-                    break;
-            }
-            
-            readerListAdapter.notifyDataSetChanged();
-        }
-    }*/
 
     /*************************** */
     private void verifyTagsList() {
@@ -628,15 +431,15 @@ public class InventoryBarcodeFragment extends CommonFragment {
             Toast.makeText(getActivity(), "Vérification en cours...", Toast.LENGTH_SHORT).show();
             return;
         }
-        
+
         isVerifying = true;
-        
+
         // Afficher le loader
         verificationProgressDialog = new ProgressDialog(getActivity());
         verificationProgressDialog.setMessage("Vérification des immobilisations en cours...");
         verificationProgressDialog.setCancelable(false);
         verificationProgressDialog.show();
-        
+
         final List<ReaderDevice> tagsToVerify = new ArrayList<>();
         for (int i = 0; i < readerListAdapter.getCount(); i++) {
             ReaderDevice device = readerListAdapter.getItem(i);
@@ -644,7 +447,7 @@ public class InventoryBarcodeFragment extends CommonFragment {
                 tagsToVerify.add(device);
             }
         }
-        
+
         verifyTagsListAsync(tagsToVerify, 0);
     }
 
@@ -658,12 +461,12 @@ public class InventoryBarcodeFragment extends CommonFragment {
             Toast.makeText(getActivity(), "Vérification terminée", Toast.LENGTH_SHORT).show();
             return;
         }
-        
+
         final ReaderDevice device = tags.get(index);
         final String tag = device.getAddress();
-        
+
         verificationProgressDialog.setMessage("Vérification " + (index + 1) + "/" + tags.size() + " : " + tag);
-        
+
         new VerifyTagTask(index, tag, new VerifyTagCallback() {
             @Override
             public void onComplete(int position, int status, String foundInLocation, String expectedLocation) {
@@ -679,15 +482,15 @@ public class InventoryBarcodeFragment extends CommonFragment {
             Toast.makeText(getActivity(), "Vérification en cours...", Toast.LENGTH_SHORT).show();
             return;
         }
-        
+
         isVerifying = true;
-        
+
         // Afficher le loader
         verificationProgressDialog = new ProgressDialog(getActivity());
         verificationProgressDialog.setMessage("Vérification des immobilisations en cours (offline)...");
         verificationProgressDialog.setCancelable(false);
         verificationProgressDialog.show();
-        
+
         final List<ReaderDevice> tagsToVerify = new ArrayList<>();
         for (int i = 0; i < readerListAdapter.getCount(); i++) {
             ReaderDevice device = readerListAdapter.getItem(i);
@@ -695,7 +498,7 @@ public class InventoryBarcodeFragment extends CommonFragment {
                 tagsToVerify.add(device);
             }
         }
-        
+
         verifyTagsListOfflineAsync(tagsToVerify, 0);
     }
 
@@ -708,30 +511,30 @@ public class InventoryBarcodeFragment extends CommonFragment {
             Toast.makeText(getActivity(), "Vérification terminée", Toast.LENGTH_SHORT).show();
             return;
         }
-        
+
         final ReaderDevice device = tags.get(index);
         final String tag = device.getAddress();
-        
+
         verificationProgressDialog.setMessage("Vérification " + (index + 1) + "/" + tags.size() + " : " + tag);
-        
+
         DatabaseHelper dbHelper = new DatabaseHelper(ctx);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        
+
         String query = "SELECT Det_inv_immo.CodeImmo, Det_inv_immo.codeEmpInv, Inv_EquipeInventaire.CodeEmplacement " +
-            "FROM Det_inv_immo " +
-            "LEFT JOIN Inv_EquipeInventaire ON Det_inv_immo.CodeInventaire = Inv_EquipeInventaire.Codeinv " +
-            "AND Det_inv_immo.codeMission = Inv_EquipeInventaire.codemission " +
-            "WHERE Det_inv_immo.CodeInventaire = ? " +
-            "AND (Det_inv_immo.CodeImmo = ? " +
-            "OR Det_inv_immo.NumSerie_Corr = ? " +
-            "OR Det_inv_immo.codeBarre_Corr = ?) " +
-            "LIMIT 1";
+                "FROM Det_inv_immo " +
+                "LEFT JOIN Inv_EquipeInventaire ON Det_inv_immo.CodeInventaire = Inv_EquipeInventaire.Codeinv " +
+                "AND Det_inv_immo.codeMission = Inv_EquipeInventaire.codemission " +
+                "WHERE Det_inv_immo.CodeInventaire = ? " +
+                "AND (Det_inv_immo.CodeImmo = ? " +
+                "OR Det_inv_immo.NumSerie_Corr = ? " +
+                "OR Det_inv_immo.codeBarre_Corr = ?) " +
+                "LIMIT 1";
         String[] args = {codeInv, tag, tag, tag};
         Cursor cursor = null;
         String foundInLocation = null;
         String expectedLocation = null;
         boolean found = false;
-        
+
         try {
             cursor = db.rawQuery(query, args);
             if (cursor != null && cursor.moveToFirst()) {
@@ -745,7 +548,7 @@ public class InventoryBarcodeFragment extends CommonFragment {
             if (cursor != null) cursor.close();
             db.close();
         }
-        
+
         int status;
         if (!found) {
             status = 0;
@@ -754,9 +557,9 @@ public class InventoryBarcodeFragment extends CommonFragment {
         } else {
             status = 2;
         }
-        
+
         updateVerificationStatus(index, tag, status, foundInLocation, expectedLocation);
-        
+
         // Passer au suivant
         verifyTagsListOfflineAsync(tags, index + 1);
     }
@@ -771,13 +574,13 @@ public class InventoryBarcodeFragment extends CommonFragment {
         private int position;
         private String tag;
         private VerifyTagCallback callback;
-        
+
         public VerifyTagTask(int position, String tag, VerifyTagCallback callback) {
             this.position = position;
             this.tag = tag;
             this.callback = callback;
         }
-        
+
         @Override
         protected JSONObject doInBackground(Void... voids) {
             HttpURLConnection connection = null;
@@ -789,7 +592,7 @@ public class InventoryBarcodeFragment extends CommonFragment {
                 connection.setRequestMethod("GET");
                 connection.setConnectTimeout(5000);
                 connection.setReadTimeout(5000);
-                
+
                 int responseCode = connection.getResponseCode();
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
@@ -820,7 +623,7 @@ public class InventoryBarcodeFragment extends CommonFragment {
                 }
             }
         }
-        
+
         @Override
         protected void onPostExecute(JSONObject result) {
             if (getActivity() != null && result != null) {
@@ -829,7 +632,7 @@ public class InventoryBarcodeFragment extends CommonFragment {
                     String foundInLocation = null;
                     String expectedLocation = null;
                     boolean found = false;
-                    
+
                     if ("ok".equals(sRes) && result.has("tab_srch")) {
                         JSONObject tabSrch = result.getJSONObject("tab_srch");
                         String codeImmo = tabSrch.optString("CodeImmo", "");
@@ -840,7 +643,7 @@ public class InventoryBarcodeFragment extends CommonFragment {
                             expectedLocation = codeEmplacement;
                         }
                     }
-                    
+
                     int status;
                     if (!found) {
                         status = 0;
@@ -849,7 +652,7 @@ public class InventoryBarcodeFragment extends CommonFragment {
                     } else {
                         status = 2;
                     }
-                    
+
                     if (callback != null) {
                         callback.onComplete(position, status, foundInLocation, expectedLocation);
                     }
@@ -870,7 +673,7 @@ public class InventoryBarcodeFragment extends CommonFragment {
             ImageView verifyStatus = listItemView.findViewById(R.id.verify_status);
             ImageButton buttonEditDetail = listItemView.findViewById(R.id.buttonEditDetail);
             ImageButton buttonAddDetail = listItemView.findViewById(R.id.buttonAddDetail);
-            
+
             switch (status) {
                 case 0: // NOT FOUND
                     verifyStatus.setImageResource(R.drawable.ic_not_found);
@@ -879,27 +682,27 @@ public class InventoryBarcodeFragment extends CommonFragment {
                     buttonEditDetail.setVisibility(View.GONE);
                     buttonAddDetail.setOnClickListener(v -> {
                         AddImmoDialog dialog = AddImmoDialog.newInstance(tag, tag,codeInv, codeMission, equipe, codeEmplacement,
-                            () -> {
-                                // Re-exécuter la vérification après fermeture
-                                if (isVerifying) {
-                                    // Attendre la fin de la vérification en cours
-                                    new android.os.Handler().postDelayed(() -> {
-                                        if (!isVerifying) {
-                                            if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
-                                                verifyTagsList();
-                                            } else {
-                                                verifyTagsListOffline();
+                                () -> {
+                                    // Re-exécuter la vérification après fermeture
+                                    if (isVerifying) {
+                                        // Attendre la fin de la vérification en cours
+                                        new android.os.Handler().postDelayed(() -> {
+                                            if (!isVerifying) {
+                                                if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
+                                                    verifyTagsList();
+                                                } else {
+                                                    verifyTagsListOffline();
+                                                }
                                             }
-                                        }
-                                    }, 500);
-                                } else {
-                                    if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
-                                        verifyTagsList();
+                                        }, 500);
                                     } else {
-                                        verifyTagsListOffline();
+                                        if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
+                                            verifyTagsList();
+                                        } else {
+                                            verifyTagsListOffline();
+                                        }
                                     }
-                                }
-                            });
+                                });
                         dialog.show(getChildFragmentManager(), "AddImmoDialog");
                     });
                     break;
@@ -910,26 +713,26 @@ public class InventoryBarcodeFragment extends CommonFragment {
                     buttonAddDetail.setVisibility(View.GONE);
                     buttonEditDetail.setOnClickListener(v -> {
                         EditImmoDialog dialog = EditImmoDialog.newInstance(tag, codeInv, codeMission, equipe,
-                            () -> {
-                                // Re-exécuter la vérification après fermeture
-                                if (isVerifying) {
-                                    new android.os.Handler().postDelayed(() -> {
-                                        if (!isVerifying) {
-                                            if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
-                                                verifyTagsList();
-                                            } else {
-                                                verifyTagsListOffline();
+                                () -> {
+                                    // Re-exécuter la vérification après fermeture
+                                    if (isVerifying) {
+                                        new android.os.Handler().postDelayed(() -> {
+                                            if (!isVerifying) {
+                                                if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
+                                                    verifyTagsList();
+                                                } else {
+                                                    verifyTagsListOffline();
+                                                }
                                             }
-                                        }
-                                    }, 500);
-                                } else {
-                                    if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
-                                        verifyTagsList();
+                                        }, 500);
                                     } else {
-                                        verifyTagsListOffline();
+                                        if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
+                                            verifyTagsList();
+                                        } else {
+                                            verifyTagsListOffline();
+                                        }
                                     }
-                                }
-                            });
+                                });
                         dialog.show(getChildFragmentManager(), "EditImmoDialog");
                     });
                     break;
@@ -940,26 +743,26 @@ public class InventoryBarcodeFragment extends CommonFragment {
                     buttonAddDetail.setVisibility(View.GONE);
                     buttonEditDetail.setOnClickListener(v -> {
                         EditImmoDialog dialog = EditImmoDialog.newInstance(tag, codeInv, codeMission, equipe,
-                            () -> {
-                                // Re-exécuter la vérification après fermeture
-                                if (isVerifying) {
-                                    new android.os.Handler().postDelayed(() -> {
-                                        if (!isVerifying) {
-                                            if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
-                                                verifyTagsList();
-                                            } else {
-                                                verifyTagsListOffline();
+                                () -> {
+                                    // Re-exécuter la vérification après fermeture
+                                    if (isVerifying) {
+                                        new android.os.Handler().postDelayed(() -> {
+                                            if (!isVerifying) {
+                                                if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
+                                                    verifyTagsList();
+                                                } else {
+                                                    verifyTagsListOffline();
+                                                }
                                             }
-                                        }
-                                    }, 500);
-                                } else {
-                                    if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
-                                        verifyTagsList();
+                                        }, 500);
                                     } else {
-                                        verifyTagsListOffline();
+                                        if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
+                                            verifyTagsList();
+                                        } else {
+                                            verifyTagsListOffline();
+                                        }
                                     }
-                                }
-                            });
+                                });
                         dialog.show(getChildFragmentManager(), "EditImmoDialog");
                     });
                     break;
