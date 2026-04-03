@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
+
+    <PreferenceCategory app:title="@string/ImageTransfer">
+        <DropDownPreference
+            android:defaultValue="@string/IDS_FORMAT_6F"
+            android:entries="@array/image_formats_titles"
+            android:entryValues="@array/image_formats_values"
+            android:icon="@drawable/ic_dummy_24dp"
+            android:key="pref_imageformat"
+            android:summary="%s"
+            android:title="@string/imageformat" />
+        <SeekBarPreference
+            android:defaultValue="50"
+            android:icon="@drawable/ic_photo_size_select_large_black_24dp"
+            android:key="pref_jpgquality"
+            android:max="100"
+            android:title="@string/quality"
+            app:min="10"
+            app:showSeekBarValue="true" />
+        <ListPreference
+            android:key="pref_subsamples"
+            android:title="@string/subsample"
+            android:icon="@drawable/ic_photo_size_select_small_black_24dp"
+            android:defaultValue="1"
+            android:entries="@array/subsample_titles"
+            android:entryValues="@array/subsample_values"
+            android:summary="%s"
+            />
+    </PreferenceCategory>
+
+</PreferenceScreen>

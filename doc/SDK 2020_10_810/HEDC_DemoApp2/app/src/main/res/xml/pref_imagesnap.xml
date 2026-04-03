@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
+
+    <PreferenceCategory
+        app:initialExpandedChildrenCount="5"
+        app:title="@string/ImageCapture">
+        <SwitchPreferenceCompat
+            android:icon="@drawable/ic_flash_on_black_24dp"
+            app:defaultValue="true"
+            app:key="pref_UseIllum"
+            app:title="@string/useillum" />
+        <SwitchPreferenceCompat
+            android:icon="@drawable/ic_music_note_black_24dp"
+            app:defaultValue="true"
+            app:key="pref_BeepSnap"
+            app:title="@string/beepsnap" />
+        <SwitchPreferenceCompat
+            android:icon="@drawable/ic_chevron_right_black_24dp"
+            app:defaultValue="false"
+            app:key="pref_WaitTrigger"
+            app:title="@string/waittrigger" />
+        <SwitchPreferenceCompat
+            android:icon="@drawable/ic_picture_in_picture_alt_black_24dp"
+            app:defaultValue="false"
+            app:key="pref_AutoImage"
+            app:title="@string/autoimage" />
+        <DropDownPreference
+            android:defaultValue="@string/IDS_FORMAT_6F"
+            android:entries="@array/gain_titles"
+            android:entryValues="@array/gain_values"
+            android:icon="@drawable/ic_iso_black_24dp"
+            android:key="pref_gain"
+            android:summary="%s"
+            android:title="@string/gain" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

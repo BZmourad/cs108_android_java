@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <resources>
+        <usb-device vendor-id="3118"/> <!-- 0x0c2e gen6 and newer devices -->
+        <usb-device vendor-id="1334"/> <!-- 0x0536 gen5 devices (HHP) -->
+    </resources>
+</PreferenceScreen>

@@ -1,0 +1,34 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:compat="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="honeywell.hedc_demoapp2.MainActivity">
+<!--    <item-->
+<!--        android:id="@+id/showScanWindow"-->
+<!--        android:icon="@drawable/ic_scanwindow_white_24dp"-->
+<!--        android:title="@string/scanwindow"-->
+<!--        android:textAllCaps="false"-->
+<!--        compat:showAsAction="ifRoom"  />-->
+    <item
+        android:id="@+id/clearscreen"
+        android:icon="@drawable/ic_cancel_white_24dp"
+        android:title="@string/clearscreen"
+        compat:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/preferences"
+        android:icon="@drawable/ic_settings_white_24dp"
+        android:title="@string/ImagePreferences"
+        compat:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/about"
+        android:icon="@drawable/ic_help_white_24dp"
+        android:title="@string/about"
+        android:textAllCaps="false"
+        compat:showAsAction="ifRoom"  />
+    <item
+        android:id="@+id/action_USBDevices"
+        android:icon="@drawable/ic_usb_black_24dp"
+        android:orderInCategory="100"
+        android:title="@string/usb_devices_list"
+        android:textAllCaps="false"
+        compat:showAsAction="never" />
+</menu>
