@@ -1,2 +1,0 @@
-include ':app'
-rootProject.name = "HEDC_DemoApp2"
