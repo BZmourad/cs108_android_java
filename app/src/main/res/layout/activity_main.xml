@@ -33,7 +33,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:backgroundTint="@color/colorBlueDark2"
-            android:background="?attr/colorPrimary"
+            android:background="@color/colorBlueDark2"
             app:fabAlignmentMode="end"
             app:fabCradleMargin="8dp"
             app:fabCradleRoundedCornerRadius="8dp"

@@ -47,6 +47,7 @@ import com.csl.cs108immo.dialogs.AddImmoDialog;
 import com.csl.cs108immo.dialogs.EditImmoDialog;
 import android.app.ProgressDialog;
 import androidx.fragment.app.FragmentManager;
+import android.view.inputmethod.InputMethodManager;
 
 public class InventoryBarcodeFragment extends CommonFragment {
     private ListView barcodeListView;
@@ -167,6 +168,13 @@ public class InventoryBarcodeFragment extends CommonFragment {
 
         // NOUVEAU: Gestion de l'ajout manuel de code-barres
         final EditText manualBarcodeInput = (EditText) getActivity().findViewById(R.id.manualBarcodeInput);
+        manualBarcodeInput.requestFocus();
+        manualBarcodeInput.setSelection(0);
+
+        // Cacher le clavier
+        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(manualBarcodeInput.getWindowToken(), 0);
+
         Button addBarcodeButton = (Button) getActivity().findViewById(R.id.addBarcodeButton);
 
         addBarcodeButton.setOnClickListener(new View.OnClickListener() {
@@ -189,7 +197,7 @@ public class InventoryBarcodeFragment extends CommonFragment {
                 }
                 
                 // Créer et ajouter le nouveau device
-                ReaderDevice newDevice = new ReaderDevice(barcode, barcode, false, "", 0, 0.0);
+                ReaderDevice newDevice = new ReaderDevice("", barcode, false, "", 0, 0.0);
                 MainActivity.sharedObjects.barsList.add(newDevice);
                 readerListAdapter.notifyDataSetChanged();
                 

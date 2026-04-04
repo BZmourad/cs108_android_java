@@ -32,6 +32,7 @@
                 android:layout_gravity="center|bottom"
                 android:textStyle="bold"
                 android:textSize="20sp"
+                android:textColor="@color/colorBlueDark2"
                 android:text="@string/home_inventory710" />
         </FrameLayout>
     </LinearLayout>
@@ -47,12 +48,21 @@
             android:layout_weight="1"
             android:layout_height="match_parent"
             android:background="@drawable/border">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:onClick="inventaireClicked"
+                android:paddingBottom="50dp"
+                android:paddingTop="10dp"
+                android:src="@drawable/sync"
+                tools:ignore="SpeakableTextPresentCheck" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
+                android:layout_gravity="center|bottom"
                 android:textStyle="bold"
                 android:textSize="20sp"
+                android:textColor="@color/colorBlueDark2"
                 android:text="Synchroniser" />
         </FrameLayout>
 
@@ -61,18 +71,28 @@
             android:layout_weight="1"
             android:layout_height="match_parent"
             android:background="@drawable/border">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:onClick="inventaireClicked"
+                android:paddingBottom="50dp"
+                android:paddingTop="10dp"
+                android:src="@drawable/trash"
+                tools:ignore="SpeakableTextPresentCheck" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
+                android:layout_gravity="center|bottom"
                 android:textStyle="bold"
                 android:textSize="20sp"
+                android:textColor="@color/colorBlueDark2"
                 android:text="Vider la base" />
         </FrameLayout>
         <FrameLayout
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
+            android:visibility="gone"
             android:background="@drawable/border">
             <TextView
                 android:layout_width="wrap_content"
@@ -100,6 +120,7 @@
                 android:layout_height="match_parent"
                 android:onClick="settClicked"
                 android:paddingBottom="50dp"
+                android:paddingTop="10dp"
                 android:src="@drawable/settings"
                 tools:ignore="SpeakableTextPresentCheck" />
 
@@ -107,9 +128,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center|bottom"
-                android:textStyle="bold"
+                android:text="@string/home_settings710"
+                android:textColor="@color/colorBlueDark2"
                 android:textSize="20sp"
-                android:text="@string/home_settings710" />
+                android:textStyle="bold" />
         </FrameLayout>
     </LinearLayout>
 
@@ -156,6 +178,7 @@
                 android:layout_gravity="center|bottom"
                 android:textStyle="bold"
                 android:textSize="20sp"
+                android:textColor="@color/colorBlueDark2"
                 android:text="@string/home_connect" />
         </FrameLayout>
     </LinearLayout>
