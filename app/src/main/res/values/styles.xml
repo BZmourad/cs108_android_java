@@ -122,6 +122,7 @@
         <item name="android:textAppearance">?android:attr/textAppearanceLarge</item>
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:background">#4b77be</item>
+        <item name="android:layout_margin">1dp</item>
     </style>
 
     <style name="style_pwd_dialog_button_font" parent="style_button_font">

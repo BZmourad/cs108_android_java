@@ -296,12 +296,12 @@ public class SettingOperateFragment extends CommonFragment {
 
         // Hide Port Enable (if not needed - but keep if you need antenna selection)
         // Uncomment the following if you want to hide it:
-        /*
+        
         View portEnableView = getActivity().findViewById(R.id.settingOperatePortEnable);
         if (portEnableView != null && portEnableView.getParent() != null) {
             ((View) portEnableView.getParent()).setVisibility(View.GONE);
         }
-        */
+        
 
         // Hide Tag Delay (Compact Inventory delay time)
         View tagDelayView = getActivity().findViewById(R.id.settingOperateTagDelay);

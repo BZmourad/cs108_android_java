@@ -385,7 +385,7 @@ public class SettingAdminFragment extends CommonFragment {
         if (sameCheck == false) MainActivity.csLibrary4A.setSameCheck(false);
         mHandler.post(updateRunnable);
 
-                // Hide ALL fields first, then show only required ones
+        // Hide ALL fields first, then show only required ones
 
         // Hide Battery level format
         View batteryView = getActivity().findViewById(R.id.settingAdminBattery);
