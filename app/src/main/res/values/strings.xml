@@ -15,7 +15,7 @@
     <string name="ADMIN_USERNAME">admin</string>
     <string name="ADMIN_PASSWORD">admin</string>
     <string name="loading">Chargement...</string>
-    <string name="app_name">IMMO-RFID</string>
+    <string name="app_name">IMMO</string>
     <string name="subtype_en_US">English (US)</string>
     <string name="app_name_simplewedge">CSL Wedge</string>
     <string name="app_name_cs710">CS710S Java</string>
@@ -26,7 +26,7 @@
     <string name="app_ime_cs108">CS108 Java Wedge</string>
     <string name="title_activity_home_simplewedge">CSL Wedge</string>
     <string name="title_activity_home_cs710">CSL Java</string>
-    <string name="title_activity_home_cs108">IMMO-RFID</string>
+    <string name="title_activity_home_cs108">IMMO</string>
     <string name="title_activity_special">Fonctions spéciales</string>
     <string name="title_activity_about">À propos</string>
     <string name="title_activity_connection">Connexion</string>
@@ -386,7 +386,7 @@
     <string name="action_title">Action</string>
     <string name="enable_filter">Activer le filtre</string>
     <string name="type_filter">correspondre sur ~EPC (pas EPC)</string>
-    <string name="company_title">IMMO-RFID</string>
+    <string name="company_title">IMMO</string>
     <string name="app_version_title">Version de l\'application</string>
     <string name="lib_version_title">Version de la bibliothèque</string>
     <string name="app_timeStamp">Horodatage</string>

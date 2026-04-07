@@ -191,7 +191,7 @@ public class MainActivity extends LayoutBarActivity {
                 && position != DrawerPositions.ABOUT
                 && position != DrawerPositions.CONNECT
                 && position != DrawerPositions.DIRECTWEDGE && csLibrary4A.isBleConnected() == false) {
-            Toast.makeText(MainActivity.mContext, "Bluetooth Disconnected.  Please Connect.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.mContext, "Bluetooth déconnecté. Veuillez vous connecter.", Toast.LENGTH_SHORT).show();
             return;
         }
         switch (position) {
@@ -378,7 +378,7 @@ public class MainActivity extends LayoutBarActivity {
     }
     public void inventaireClicked(View view) {
         if (csLibrary4A.isBleConnected() == false) {
-            Toast.makeText(MainActivity.mContext, "Bluetooth Disconnected.  Please Connect.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.mContext, "Bluetooth déconnecté. Veuillez vous connecter.", Toast.LENGTH_SHORT).show();
             return;
         } else {
             fragment = new InventaireFragment();

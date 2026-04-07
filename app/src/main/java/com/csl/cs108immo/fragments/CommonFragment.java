@@ -114,7 +114,7 @@ public abstract class CommonFragment extends Fragment {
                         CustomAlertDialog appdialog = new CustomAlertDialog();
                         appdialog.Confirm((Activity) MainActivity.mContext, "Bluetooth is DISCONNECTED",
                                 "Do you want to reconnect the Bluetooth ?",
-                                "No thanks", "Reconnect",
+                                "Non merci", "Reconnect",
                                 new Runnable() {
                                     @Override
                                     public void run() {
@@ -143,8 +143,8 @@ public abstract class CommonFragment extends Fragment {
                     if (false) {
                         CustomAlertDialog appdialog = new CustomAlertDialog();
                         appdialog.Confirm((Activity) MainActivity.mContext, "Rfid Transmission failure",
-                                "Do you want to disconnect the Bluetooth ?",
-                                "No thanks", "Disconnect",
+                                "Voulez-vous déconnecter le Bluetooth ?",
+                                "Non merci", "Déconnecter",
                                 new Runnable() {
                                     @Override
                                     public void run() {

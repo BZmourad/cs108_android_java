@@ -584,7 +584,7 @@ public class HomeFragment extends CommonFragment {
                     CustomAlertDialog appdialog = new CustomAlertDialog();
                     appdialog.Confirm(getActivity(), "Use your location",
                             "This app collects location data in the background.  In terms of the features using this location data in the background, this App collects location data when it is reading RFID tag in all inventory pages.  The purpose of this is to correlate the RFID tag with the actual GNSS(GPS) location of the tag.  In other words, this is to track the physical location of the logistics item tagged with the RFID tag.",
-                            "No thanks", "Turn on",
+                            "Non merci", "Turn on",
                             new Runnable() {
                                 @Override
                                 public void run() {
