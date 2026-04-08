@@ -27,9 +27,34 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="Add"
+            android:text="Ajouter"
             style="@style/style_button_font"
             android:textSize="12sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="0dp"
+        android:background="#DBDBDB"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Filtrer par statut :"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="12dp"/>
+
+        <Spinner
+            android:id="@+id/filterSpinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@android:drawable/btn_dropdown"
+            android:padding="8dp"/>
     </LinearLayout>
 
     <ListView
@@ -77,8 +102,7 @@
 
         <TextView
             android:id="@+id/inventoryBarcodeYield"
-            android:layout_width="0dp"
-            android:layout_weight="10"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
             style="@style/style_button_font_2" />
@@ -86,16 +110,24 @@
         <Button
             android:id="@+id/inventoryBarcodeButton"
             android:layout_width="0dp"
-            android:layout_weight="10"
+            android:layout_weight="1"
             android:layout_height="match_parent"
             style="@style/style_button_font"
-            android:textSize="12sp"
+            android:textSize="15sp"
             android:text="@string/start_title" />
+
+        <!--Button
+            android:id="@+id/submitBarcodeButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            style="@style/style_button_font"
+            android:textSize="15sp"
+            android:text="Valider" /-->
 
         <TextView
             android:id="@+id/inventoryBarcodeTotal"
-            android:layout_width="0dp"
-            android:layout_weight="10"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
             style="@style/style_button_font_2" />

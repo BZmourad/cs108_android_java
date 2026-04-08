@@ -57,6 +57,13 @@ import com.csl.cs108immo.dialogs.AddImmoDialog;
 import com.csl.cs108immo.dialogs.EditImmoDialog;
 import android.app.ProgressDialog;
 import androidx.fragment.app.FragmentManager;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import android.content.ContentValues;
+import java.util.Locale;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 public class LectureFragment extends CommonFragment {
     final private boolean bAdd2End = false;
@@ -86,6 +93,10 @@ public class LectureFragment extends CommonFragment {
     private ProgressDialog verificationProgressDialog;
     private boolean isVerifying = false;
     protected static final String TAG_CONTENT_FRAGMENT = "ContentFragment";
+    private Spinner filterSpinner;
+    private ArrayAdapter<String> filterAdapter;
+    private ArrayList<ReaderDevice> originalTagsList = new ArrayList<>();
+    private String currentFilter = "Tous";
 
     void clearTagsList() {
         MainActivity.csLibrary4A.appendToLog("InventoryRfidMultiFragment: NOT onOptionsItemSelected: clearTagsList");
@@ -322,7 +333,7 @@ public class LectureFragment extends CommonFragment {
         boolean needDupElim = true;
         boolean need4Extra1 = MainActivity.csLibrary4A.getPortNumber() > 1 ? true : false;
         boolean need4Extra2 = (mDid != null ? true : false);
-        readerListAdapter = new ReaderListAdapter(getActivity(), R.layout.readers_list_item_inventory, MainActivity.sharedObjects.tagsList, bSelect4detail, true, needDupElim, need4Extra1, need4Extra2);
+        readerListAdapter = new ReaderListAdapter(getActivity(), R.layout.readers_list_item_inventory_2, MainActivity.sharedObjects.tagsList, bSelect4detail, true, needDupElim, need4Extra1, need4Extra2);
         rfidListView.setAdapter(readerListAdapter);
         rfidListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         rfidListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -424,6 +435,7 @@ public class LectureFragment extends CommonFragment {
                 }
             });
         }
+        setupFilterSpinner();
     }
     @Override
     public void onResume() {
@@ -768,7 +780,6 @@ public class LectureFragment extends CommonFragment {
         }
     }
 
-    /*************************** */
     private void verifyTagsList() {
         if (isVerifying) {
             Toast.makeText(getActivity(), "Vérification en cours...", Toast.LENGTH_SHORT).show();
@@ -1123,4 +1134,23 @@ public class LectureFragment extends CommonFragment {
         isVerifying = false;
         super.onDestroyView();
     }
+
+    private void setupFilterSpinner() {
+        filterSpinner = getActivity().findViewById(R.id.filterSpinner);
+
+        String[] filterOptions = {
+                "Tous",
+                "Non trouvé",
+                "Trouvé dans la bonne endroit",
+                "Trouvé avec fausse emplacement",
+                "Non vérifié"
+        };
+
+        filterAdapter = new ArrayAdapter<>(getActivity(),
+                android.R.layout.simple_spinner_item, filterOptions);
+        filterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        filterSpinner.setAdapter(filterAdapter);
+
+    }
+
 }

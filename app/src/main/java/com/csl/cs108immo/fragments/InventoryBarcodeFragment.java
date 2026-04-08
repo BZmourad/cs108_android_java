@@ -137,7 +137,7 @@ public class InventoryBarcodeFragment extends CommonFragment {
         barcodeListView = (ListView) getActivity().findViewById(R.id.inventoryBarcodeList);
         barcodeEmptyView = (TextView) getActivity().findViewById(R.id.inventoryBarcodeEmpty);
         barcodeListView.setEmptyView(barcodeEmptyView);
-        readerListAdapter = new ReaderListAdapter(getActivity(), R.layout.readers_list_item, MainActivity.sharedObjects.barsList, true, false);
+        readerListAdapter = new ReaderListAdapter(getActivity(), R.layout.readers_list_item_2, MainActivity.sharedObjects.barsList, true, false);
         barcodeListView.setAdapter(readerListAdapter);
         barcodeListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         barcodeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {

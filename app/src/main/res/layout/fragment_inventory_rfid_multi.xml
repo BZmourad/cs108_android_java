@@ -6,6 +6,31 @@
     android:orientation="vertical">
 
     <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="0dp"
+        android:background="#DBDBDB"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Filtrer par statut :"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="12dp"/>
+
+        <Spinner
+            android:id="@+id/filterSpinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@android:drawable/btn_dropdown"
+            android:padding="8dp"/>
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/inventoryMultibankSetting"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -244,12 +269,22 @@
 
         <Button
             android:id="@+id/inventoryRfidButton1"
+            style="@style/style_button_font"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/start_title"
+            android:textSize="15sp"
+            tools:ignore="TextContrastCheck" />
+
+        <!--Button
+            android:id="@+id/SubmitRfidButton"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
             style="@style/style_button_font"
             android:textSize="15sp"
-            android:text="@string/start_title" />
+            android:text="Valider" /-->
 
         <TextView
             android:id="@+id/inventoryRfidRate1"
@@ -267,30 +302,34 @@
 
         <Button
             android:id="@+id/verifyRfidButton"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
             style="@style/style_button_font"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Vérifier"
             android:textSize="15sp"
-            android:text="Vérifier" />
-        
+            tools:ignore="TextContrastCheck" />
+
         <Button
             android:id="@+id/clearListButton"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
             style="@style/style_button_font"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Vider"
+            android:textColor="#FFFFFF"
             android:textSize="15sp"
-            android:text="Vider" />
-            
+            tools:ignore="TextContrastCheck" />
+
         <Button
             android:id="@+id/settingRfidButton"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
             style="@style/style_button_font"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Paramétre"
             android:textSize="15sp"
-            android:text="Paramétre" />
+            tools:ignore="TextContrastCheck" />
 
     </LinearLayout>
 </LinearLayout>
