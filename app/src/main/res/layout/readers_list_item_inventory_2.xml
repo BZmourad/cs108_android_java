@@ -27,16 +27,13 @@
             android:layout_marginTop="5dp"
             android:visibility="gone"
             android:src="@drawable/ic_pending"/>
-
-        <!--CheckBox
-            android:id="@+id/reader_checkbox"
+        <ImageView
+            android:id="@+id/inv_status"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_vertical"
-            android:checked="true"
-            android:clickable="true"
-            android:focusable="true" /-->
-
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:visibility="gone"
+            android:src="@drawable/invent"/>
         <TextView
             android:id="@+id/reader_checkedtextview"
             android:layout_width="0dp"
@@ -45,6 +42,18 @@
             android:checkMark="?android:attr/listChoiceIndicatorMultiple"
             android:clickable="false"
             android:gravity="center_vertical" />
+
+        <ImageButton
+            android:id="@+id/buttonSearchTag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="#4B77BE"
+            android:layout_marginEnd="1dp"
+            android:contentDescription="Add"
+            android:paddingHorizontal="5dp"
+            android:paddingVertical="5dp"
+            android:src="@drawable/search_icon" />
 
         <ImageButton
             android:id="@+id/buttonEditDetail"

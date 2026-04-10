@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Fond gris clair -->
+    <item android:id="@android:id/background">
+        <shape>
+            <corners android:radius="4dp" />
+            <solid android:color="#E0E0E0" />
+        </shape>
+    </item>
+    
+    <!-- Barre de progression avec gradient Rouge → Orange → Vert -->
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape>
+                <corners android:radius="4dp" />
+                <gradient
+                    android:startColor="#FF0000"
+                    android:centerColor="#FFA500"
+                    android:endColor="#00FF00"
+                    android:angle="0"
+                    android:type="linear" />
+            </shape>
+        </clip>
+    </item>
+</layer-list>

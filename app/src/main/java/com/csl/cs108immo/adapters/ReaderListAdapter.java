@@ -8,10 +8,12 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckedTextView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.csl.cs108immo.MainActivity;
+import com.csl.cs108immo.fragments.LectureFragment;
 import com.csl.cs108immo.R;
 import com.csl.cslibrary4a.ReaderDevice;
 
@@ -23,6 +25,7 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
     private final int resourceId;
     private final ArrayList<ReaderDevice> readersList;
     private boolean select4detail, select4Rssi, selectDupElim, select4Extra1, select4Extra2;
+    private OnSearchClickListener searchClickListener;
 
     public ReaderListAdapter(Context context, int resourceId, ArrayList<ReaderDevice> readersList, boolean select4detail, boolean select4Rssi) {
         super(context, resourceId, readersList);
@@ -45,6 +48,38 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
         this.selectDupElim = selectDupElim;
         this.select4Extra1 = select4Extra1;
         this.select4Extra2 = select4Extra2;
+        MainActivity.csLibrary4A.appendToLog("select4Extra1 = " + select4Extra1 + ", select4Extra2 = " + select4Extra2);
+    }
+
+    public ReaderListAdapter(Context context, int resourceId, ArrayList<ReaderDevice> readersList, 
+                             boolean select4detail, boolean select4Rssi, 
+                             OnSearchClickListener listener) {
+        super(context, resourceId, readersList);
+        this.context = context;
+        this.resourceId = resourceId;
+        this.readersList = readersList;
+        this.select4detail = select4detail;
+        this.select4Rssi = select4Rssi;
+        this.searchClickListener = listener;
+        select4Extra1 = false;
+        select4Extra2 = false;
+    }
+    
+    // Also add the listener to the other constructor
+    public ReaderListAdapter(Context context, int resourceId, ArrayList<ReaderDevice> readersList, 
+                             boolean select4detail, boolean select4Rssi, boolean selectDupElim, 
+                             boolean select4Extra1, boolean select4Extra2,
+                             OnSearchClickListener listener) {
+        super(context, resourceId, readersList);
+        this.context = context;
+        this.resourceId = resourceId;
+        this.readersList = readersList;
+        this.select4detail = select4detail;
+        this.select4Rssi = select4Rssi;
+        this.selectDupElim = selectDupElim;
+        this.select4Extra1 = select4Extra1;
+        this.select4Extra2 = select4Extra2;
+        this.searchClickListener = listener;
         MainActivity.csLibrary4A.appendToLog("select4Extra1 = " + select4Extra1 + ", select4Extra2 = " + select4Extra2);
     }
 
@@ -158,22 +193,6 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
         }
         TextView readerDetailA = (TextView) convertView.findViewById(R.id.reader_detailA);
         TextView readerDetailB = (TextView) convertView.findViewById(R.id.reader_detailB);
-        /*ImageView verifyStatus = convertView.findViewById(R.id.verify_status);
-        Button buttonAddDetail = convertView.findViewById(R.id.buttonAddDetail);
-        Button buttonEditDetail = convertView.findViewById(R.id.buttonEditDetail);
-
-        // Configurez les visibilités initiales
-        if (verifyStatus != null) {
-            verifyStatus.setVisibility(View.VISIBLE);
-        }
-        if (buttonAddDetail != null) {
-            buttonAddDetail.setVisibility(View.GONE);
-            buttonAddDetail.setTag(position);
-        }
-        if (buttonEditDetail != null) {
-            buttonEditDetail.setVisibility(View.GONE);
-            buttonEditDetail.setTag(position);
-        }*/
 
         if (reader.isConnected() || /*checkedTextView.isChecked() ||*/ select4detail == false) {
             readerDetailA.setText(reader.getDetails());
@@ -200,6 +219,15 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
         } else {
             readerDetailA.setVisibility(View.GONE);
             readerDetailB.setVisibility(View.GONE);
+        }
+        ImageButton buttonSearchTag = convertView.findViewById(R.id.buttonSearchTag);
+        if (buttonSearchTag != null) {
+            buttonSearchTag.setOnClickListener(v -> {
+                String tagId = reader.getAddress();
+                if (searchClickListener != null) {
+                    searchClickListener.onSearchClick(tagId);
+                }
+            });
         }
         return convertView;
     }

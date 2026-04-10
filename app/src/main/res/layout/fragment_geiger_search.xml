@@ -140,6 +140,7 @@
             android:layout_weight="1"
             android:layout_height="match_parent"
             style="@style/style_button_font"
+            android:textSize="15dp"
             android:text="@string/start_title" />
 
         <TextView

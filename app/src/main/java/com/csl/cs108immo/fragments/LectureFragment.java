@@ -42,28 +42,22 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
-import com.csl.cs108immo.fragments.SettingFragment;
+
 import org.json.JSONObject;
 import android.widget.ImageView;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.widget.EditText;
+
 import com.csl.cs108immo.SettingTask;
 import com.csl.cs108immo.app.db.DatabaseHelper;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.database.Cursor;
 import com.csl.cs108immo.dialogs.AddImmoDialog;
 import com.csl.cs108immo.dialogs.EditImmoDialog;
 import android.app.ProgressDialog;
 import androidx.fragment.app.FragmentManager;
-import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import android.content.ContentValues;
-import java.util.Locale;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+
+import com.csl.cs108immo.dialogs.SearchTagDialog;
 
 public class LectureFragment extends CommonFragment {
     final private boolean bAdd2End = false;
@@ -97,6 +91,7 @@ public class LectureFragment extends CommonFragment {
     private ArrayAdapter<String> filterAdapter;
     private ArrayList<ReaderDevice> originalTagsList = new ArrayList<>();
     private String currentFilter = "Tous";
+    private SearchTagDialog currentSearchDialog;
 
     void clearTagsList() {
         MainActivity.csLibrary4A.appendToLog("InventoryRfidMultiFragment: NOT onOptionsItemSelected: clearTagsList");
@@ -333,7 +328,8 @@ public class LectureFragment extends CommonFragment {
         boolean needDupElim = true;
         boolean need4Extra1 = MainActivity.csLibrary4A.getPortNumber() > 1 ? true : false;
         boolean need4Extra2 = (mDid != null ? true : false);
-        readerListAdapter = new ReaderListAdapter(getActivity(), R.layout.readers_list_item_inventory_2, MainActivity.sharedObjects.tagsList, bSelect4detail, true, needDupElim, need4Extra1, need4Extra2);
+        //readerListAdapter = new ReaderListAdapter(getActivity(), R.layout.readers_list_item_inventory_2, MainActivity.sharedObjects.tagsList, bSelect4detail, true, needDupElim, need4Extra1, need4Extra2);
+        readerListAdapter = new ReaderListAdapter(getActivity(), R.layout.readers_list_item_inventory_2, MainActivity.sharedObjects.tagsList, bSelect4detail, true, needDupElim, need4Extra1, need4Extra2, tagId -> showSearchTagDialog(tagId));
         rfidListView.setAdapter(readerListAdapter);
         rfidListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         rfidListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -517,10 +513,21 @@ public class LectureFragment extends CommonFragment {
         super("LectureFragment");
     }
     void setNotificationListener() {
+        // Don't set listener if search dialog is open
+        if (currentSearchDialog != null && currentSearchDialog.isVisible()) {
+            MainActivity.csLibrary4A.appendToLog("setNotificationListener blocked - search dialog is open");
+            return;
+        }
+        
         MainActivity.csLibrary4A.appendToLog("setNotificationListener A in multibank inventory");
         MainActivity.csLibrary4A.setNotificationListener(new NotificationConnector.NotificationListener() {
             @Override
             public void onChange() {
+                // Check again if dialog is open
+                if (currentSearchDialog != null && currentSearchDialog.isVisible()) {
+                    MainActivity.csLibrary4A.appendToLog("onChange blocked - search dialog is open");
+                    return;
+                }
                 MainActivity.csLibrary4A.appendToLog("setNotificationListener TRIGGER key is pressed in multibank inventory.");
                 startStopHandler(true);
             }
@@ -541,6 +548,11 @@ public class LectureFragment extends CommonFragment {
         if (mDid != null && mDid.matches("E203510")) MainActivity.csLibrary4A.setSelectCriteriaDisable(1);
     }
     void startStopHandler(boolean buttonTrigger) {
+        // Don't allow start/stop if search dialog is open
+        if (currentSearchDialog != null && currentSearchDialog.isVisible()) {
+            MainActivity.csLibrary4A.appendToLog("startStopHandler blocked - search dialog is open");
+            return;
+        }
         MainActivity.csLibrary4A.appendToLog("0 buttonTrigger is " + buttonTrigger);
         if (buttonTrigger) MainActivity.csLibrary4A.appendToLog("BARTRIGGER: getTriggerButtonStatus = " + MainActivity.csLibrary4A.getTriggerButtonStatus());
         if (MainActivity.sharedObjects.runningInventoryBarcodeTask) {
@@ -823,8 +835,8 @@ public class LectureFragment extends CommonFragment {
         
         new VerifyTagTask(index, tag, new VerifyTagCallback() {
             @Override
-            public void onComplete(int position, int status, String foundInLocation, String expectedLocation) {
-                updateVerificationStatus(position, tag, status, foundInLocation, expectedLocation);
+            public void onComplete(int position, int status, String foundInLocation, String expectedLocation, int issync) {
+                updateVerificationStatus(position, tag, status, foundInLocation, expectedLocation,issync);
                 // Passer au suivant
                 verifyTagsListAsync(tags, index + 1);
             }
@@ -874,7 +886,7 @@ public class LectureFragment extends CommonFragment {
         DatabaseHelper dbHelper = new DatabaseHelper(ctx);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         
-        String query = "SELECT Det_inv_immo.CodeImmo, Det_inv_immo.codeEmpInv, Inv_EquipeInventaire.CodeEmplacement " +
+        String query = "SELECT Det_inv_immo.issync, Det_inv_immo.CodeImmo, Det_inv_immo.codeEmpInv, Inv_EquipeInventaire.CodeEmplacement " +
             "FROM Det_inv_immo " +
             "LEFT JOIN Inv_EquipeInventaire ON Det_inv_immo.CodeInventaire = Inv_EquipeInventaire.Codeinv " +
             "AND Det_inv_immo.codeMission = Inv_EquipeInventaire.codemission " +
@@ -887,6 +899,7 @@ public class LectureFragment extends CommonFragment {
         Cursor cursor = null;
         String foundInLocation = null;
         String expectedLocation = null;
+        int issync = 0;
         boolean found = false;
         
         try {
@@ -895,6 +908,7 @@ public class LectureFragment extends CommonFragment {
                 found = true;
                 foundInLocation = cursor.getString(cursor.getColumnIndexOrThrow("codeEmpInv"));
                 expectedLocation = cursor.getString(cursor.getColumnIndexOrThrow("CodeEmplacement"));
+                issync = cursor.getInt(cursor.getColumnIndexOrThrow("issync"));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -912,7 +926,7 @@ public class LectureFragment extends CommonFragment {
             status = 2;
         }
         
-        updateVerificationStatus(index, tag, status, foundInLocation, expectedLocation);
+        updateVerificationStatus(index, tag, status, foundInLocation, expectedLocation,issync);
         
         // Passer au suivant
         verifyTagsListOfflineAsync(tags, index + 1);
@@ -920,7 +934,9 @@ public class LectureFragment extends CommonFragment {
 
     // Interface pour le callback de vérification
     private interface VerifyTagCallback {
-        void onComplete(int position, int status, String foundInLocation, String expectedLocation);
+        //void onComplete(int position, int status, String foundInLocation, String expectedLocation);
+
+        void onComplete(int position, int status, String foundInLocation, String expectedLocation, int issync);
     }
 
     // Modifiez la classe VerifyTagTask
@@ -986,11 +1002,13 @@ public class LectureFragment extends CommonFragment {
                     String foundInLocation = null;
                     String expectedLocation = null;
                     boolean found = false;
-                    
+                    int issync = 0;
+
                     if ("ok".equals(sRes) && result.has("tab_srch")) {
                         JSONObject tabSrch = result.getJSONObject("tab_srch");
                         String codeImmo = tabSrch.optString("CodeImmo", "");
                         String codeEmpInv = tabSrch.optString("codeEmpInv", "");
+                        issync = tabSrch.optInt("issync", 0);
                         if (!"".equals(codeImmo)) {
                             found = true;
                             foundInLocation = codeEmpInv;
@@ -1008,12 +1026,12 @@ public class LectureFragment extends CommonFragment {
                     }
                     
                     if (callback != null) {
-                        callback.onComplete(position, status, foundInLocation, expectedLocation);
+                        callback.onComplete(position, status, foundInLocation, expectedLocation,issync);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                     if (callback != null) {
-                        callback.onComplete(position, 0, null, null);
+                        callback.onComplete(position, 0, null, null,0);
                     }
                 }
             }
@@ -1021,13 +1039,18 @@ public class LectureFragment extends CommonFragment {
     }
 
     // Modifiez updateVerificationStatus
-    private void updateVerificationStatus(int position, String tag, int status, String foundInLocation, String expectedLocation) {
+    private void updateVerificationStatus(int position, String tag, int status, String foundInLocation, String expectedLocation, int isverified) {
         View listItemView = getListView().getChildAt(position - getListView().getFirstVisiblePosition());
         if (listItemView != null) {
             ImageView verifyStatus = listItemView.findViewById(R.id.verify_status);
+            ImageView invStatus = listItemView.findViewById(R.id.inv_status);
             ImageButton buttonEditDetail = listItemView.findViewById(R.id.buttonEditDetail);
             ImageButton buttonAddDetail = listItemView.findViewById(R.id.buttonAddDetail);
-            
+            if (isverified == 1){
+                invStatus.setVisibility(View.VISIBLE);
+            } else{
+                invStatus.setVisibility(View.GONE);
+            }
             switch (status) {
                 case 0: // NOT FOUND
                     verifyStatus.setImageResource(R.drawable.ic_not_found);
@@ -1151,6 +1174,39 @@ public class LectureFragment extends CommonFragment {
         filterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         filterSpinner.setAdapter(filterAdapter);
 
+    }
+
+    // Add this method to show search dialog
+    public void showSearchTagDialog(String tagId) {
+        try {
+            // Stop any ongoing inventory before opening dialog
+            if (MainActivity.sharedObjects.runningInventoryRfidTask) {
+                if (inventoryRfidTask != null) {
+                    inventoryRfidTask.taskCancelReason = InventoryRfidTask.TaskCancelRReason.STOP;
+                }
+                MainActivity.csLibrary4A.abortOperation();
+            }
+            
+            // Disable notification listener while dialog is open
+            MainActivity.csLibrary4A.setNotificationListener(null);
+            
+            // Create and show dialog
+            SearchTagDialog dialog = SearchTagDialog.newInstance(tagId);
+            dialog.show(getChildFragmentManager(), "SearchTagDialog");
+            currentSearchDialog = dialog;
+            
+        } catch (Exception e) {
+            MainActivity.csLibrary4A.appendToLog("Error showing search dialog: " + e.getMessage());
+            Toast.makeText(getActivity(), "Error opening search dialog", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // Add method to restore notification listener
+    public void restoreNotificationListener() {
+        currentSearchDialog = null;
+        if (userVisibleHint && getUserVisibleHint()) {
+            setNotificationListener();
+        }
     }
 
 }

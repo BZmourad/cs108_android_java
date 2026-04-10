@@ -27,7 +27,13 @@
             android:layout_marginTop="5dp"
             android:visibility="gone"
             android:src="@drawable/ic_pending"/>
-
+        <ImageView
+            android:id="@+id/inv_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:visibility="gone"
+            android:src="@drawable/invent"/>
         <!--CheckBox
             android:id="@+id/reader_checkbox"
             android:layout_width="wrap_content"

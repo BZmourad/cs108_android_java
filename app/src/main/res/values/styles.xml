@@ -125,6 +125,14 @@
         <item name="android:layout_margin">1dp</item>
     </style>
 
+    <style name="FullScreenDialog" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowMinWidthMajor">100%</item>
+        <item name="android:windowMinWidthMinor">100%</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
     <style name="style_pwd_dialog_button_font" parent="style_button_font">
         <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
     </style>
