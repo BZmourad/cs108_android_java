@@ -50,6 +50,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
             android:progressDrawable="@drawable/progress_gradient"
             android:max="100"
             android:progress="0" />
@@ -74,13 +76,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingLeft="@dimen/default_left_padding">
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:gravity="right"
                     style="@style/style_normal_font"
                     android:text="Tag" />
-
                 <include
                     android:id="@+id/selectTagID"
                     android:layout_width="match_parent"
@@ -95,20 +95,17 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/default_top_margin"
                 android:paddingLeft="10dp">
-
                 <TextView
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:gravity="left"
                     style="@style/style_normal_font"
                     android:text="Select bank" />
-
                 <Spinner
                     android:id="@+id/selectMemoryBank"
                     android:layout_margin="0dp"
                     android:layout_weight="1"
                     style="@style/style_default_spinner" />
-
                 <TextView
                     android:layout_width="0dp"
                     android:layout_weight="1"
@@ -116,7 +113,6 @@
                     android:visibility="gone"
                     style="@style/style_normal_font"
                     android:text="Offset (bit)" />
-
                 <EditText
                     android:id="@+id/selectMemoryOffset"
                     android:layout_width="0dp"
@@ -134,7 +130,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingLeft="@dimen/default_left_padding">
-
                 <TextView
                     android:layout_width="0dp"
                     android:layout_weight="1"
@@ -142,7 +137,6 @@
                     android:gravity="center_vertical"
                     style="@style/style_normal_font"
                     android:text="@string/password_title" />
-
                 <include
                     android:id="@+id/selectPasswordValue"
                     android:layout_width="0dp"
@@ -151,28 +145,41 @@
                     layout="@layout/custom_edittext_password" />
             </TableRow>
 
+            <!-- Antenna Power Row with SeekBar -->
             <TableRow
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:paddingLeft="@dimen/default_left_padding">
-
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:paddingLeft="@dimen/default_left_padding"
+                android:paddingRight="@dimen/default_left_padding">
                 <TextView
+                    android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     style="@style/style_normal_font"
                     android:text="@string/settingAntennaPower_title" />
-
-                <EditText
-                    android:id="@+id/selectAntennaPower"
+                <TextView
+                    android:id="@+id/selectAntennaPowerValue"
+                    android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     style="@style/style_normal_font"
-                    android:inputType="numberDecimal" />
+                    android:text="300" />
             </TableRow>
-        </LinearLayout>
 
+            <SeekBar
+                android:id="@+id/selectAntennaPowerSeekBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="300"
+                android:progress="300"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="8dp" />
+
+        </LinearLayout>
 
         <TableRow
             android:layout_width="match_parent"
@@ -257,6 +264,4 @@
             android:layout_height="wrap_content"
             android:gravity="center" />
     </LinearLayout>
-
-
 </LinearLayout>
