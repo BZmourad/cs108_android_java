@@ -108,14 +108,6 @@ public class SearchTagDialog extends DialogFragment {
         return inflater.inflate(R.layout.dialog_search_tag, container, false);
     }
 
-    /*@Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        setupViews(view);
-        setupListeners();
-        getDialog().setCancelable(false);
-    }*/
-
     private void setupViews(View view) {
         TextView textViewProgressLabelMin = view.findViewById(R.id.geigerProgressLabelMin);
         TextView textViewProgressLabelMid = view.findViewById(R.id.geigerProgressLabelMid);
@@ -281,125 +273,6 @@ public class SearchTagDialog extends DialogFragment {
         }
     }
 
-    /*private void updateUIForSearchState(boolean searching) {
-        isSearching = searching;
-        
-        if (button != null) {
-            button.setText(searching ? "Arrêter" : "Démarrer");
-        }
-        
-        if (closeButton != null) {
-            closeButton.setEnabled(!searching);
-            closeButton.setAlpha(searching ? 0.5f : 1.0f);
-        }
-        
-        Dialog dialog = getDialog();
-        if (dialog != null) {
-            dialog.setCancelable(!searching);
-            dialog.setCanceledOnTouchOutside(!searching);
-        }
-        
-        View view = getView();
-        if (view != null) {
-            EditText selectTagID = view.findViewById(R.id.selectTagID);
-            if (selectTagID != null) {
-                selectTagID.setEnabled(!searching);
-            }
-            if (seekBarAntennaPower != null) {
-                seekBarAntennaPower.setEnabled(!searching);
-            }
-            if (memoryBankSpinner != null) {
-                memoryBankSpinner.setEnabled(!searching);
-            }
-            if (seekGeiger != null) {
-                seekGeiger.setEnabled(!searching);
-            }
-            if (checkBoxGeigerTone != null) {
-                checkBoxGeigerTone.setEnabled(!searching);
-            }
-        }
-    }
-
-    private void startStopHandler(boolean buttonTrigger) {
-        boolean currentlyRunning = (geigerSearchTask != null && geigerSearchTask.getStatus() == AsyncTask.Status.RUNNING);
-        
-        if (buttonTrigger && 
-                ((currentlyRunning && MainActivity.csLibrary4A.getTriggerButtonStatus())
-                        || (!currentlyRunning && !MainActivity.csLibrary4A.getTriggerButtonStatus()))) {
-            return;
-        }
-        
-        if (!currentlyRunning) {
-            if (!MainActivity.csLibrary4A.isBleConnected()) {
-                Toast.makeText(getActivity(), R.string.toast_ble_not_connected, Toast.LENGTH_SHORT).show();
-                return;
-            } else if (MainActivity.csLibrary4A.isRfidFailure()) {
-                Toast.makeText(getActivity(), "Rfid is disabled", Toast.LENGTH_SHORT).show();
-                return;
-            } else if (MainActivity.csLibrary4A.mrfidToWriteSize() != 0) {
-                Toast.makeText(getActivity(), R.string.toast_not_ready, Toast.LENGTH_SHORT).show();
-                return;
-            }
-            startInventoryTask();
-            alertRssiUpdateTime = 0;
-            updateUIForSearchState(true);
-        } else {
-            if (geigerSearchTask != null) {
-                geigerSearchTask.taskCancelReason = buttonTrigger ? 
-                        InventoryRfidTask.TaskCancelRReason.BUTTON_RELEASE : 
-                        InventoryRfidTask.TaskCancelRReason.STOP;
-            }
-            alertRssiUpdateTime = -1;
-            updateUIForSearchState(false);
-        }
-    }
-
-    private void startInventoryTask() {
-        boolean invalidRequest = false;
-        View view = getView();
-        if (view == null) {
-            updateUIForSearchState(false);
-            return;
-        }
-        
-        EditText selectTagID = view.findViewById(R.id.selectTagID);
-        if (selectTagID == null) {
-            updateUIForSearchState(false);
-            return;
-        }
-        
-        int memorybank = memoryBankSpinner != null ? memoryBankSpinner.getSelectedItemPosition() : 0;
-        int powerLevel = antennaPower; // Utiliser la valeur du SeekBar
-        
-        if (powerLevel < 0 || powerLevel > 330) {
-            invalidRequest = true;
-        } else {
-            String tagIdStr = selectTagID.getText().toString();
-            if (!MainActivity.csLibrary4A.setSelectedTag(tagIdStr, memorybank + 1, powerLevel)) {
-                invalidRequest = true;
-            } else {
-                MainActivity.csLibrary4A.startOperation(RfidReaderChipData.OperationTypes.TAG_SEARCHING);
-            }
-        }
-        
-        geigerSearchTask = new InventoryRfidTask(getContext(), -1, -1, 0, 0, 0, 0, 
-                invalidRequest, true,
-                null, null, geigerTagRssiView, null,
-                geigerRunTime, geigerTagGotView, geigerVoltageLevelView, null, button, rfidRateView) {
-            @Override
-            protected void onCancelled() {
-                super.onCancelled();
-                mHandler.post(() -> updateUIForSearchState(false));
-            }
-            @Override
-            protected void onPostExecute(String result) {
-                super.onPostExecute(result);
-                mHandler.post(() -> updateUIForSearchState(false));
-            }
-        };
-        geigerSearchTask.execute();
-    }*/
-
     private final Runnable mAlertRunnable = new Runnable() {
         @Override
         public void run() {
@@ -435,20 +308,6 @@ public class SearchTagDialog extends DialogFragment {
         }
     };
 
-    /*@Override
-    public void onDestroyView() {
-        if (geigerSearchTask != null) {
-            geigerSearchTask.taskCancelReason = InventoryRfidTask.TaskCancelRReason.DESTORY;
-        }
-        MainActivity.csLibrary4A.restoreAfterTagSelect();
-        MainActivity.csLibrary4A.setVibrateOn(0);
-        
-        if (getParentFragment() instanceof LectureFragment) {
-            ((LectureFragment) getParentFragment()).restoreNotificationListener();
-        }
-        super.onDestroyView();
-    }*/
-
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -481,7 +340,7 @@ public class SearchTagDialog extends DialogFragment {
         }
     }
 
-    private void updateUIForSearchState(boolean searching) {
+    /*private void updateUIForSearchState(boolean searching) {
         isSearching = searching;
         
         if (button != null) {
@@ -521,7 +380,7 @@ public class SearchTagDialog extends DialogFragment {
         
         // Pendant la recherche, on garde le listener actif
         // Quand la recherche s'arrête, on garde aussi le listener pour pouvoir redémarrer
-    }
+    }*/
 
     private void startStopHandler(boolean buttonTrigger) {
         boolean currentlyRunning = (geigerSearchTask != null && geigerSearchTask.getStatus() == AsyncTask.Status.RUNNING);
@@ -561,7 +420,7 @@ public class SearchTagDialog extends DialogFragment {
         }
     }
 
-    private void startInventoryTask() {
+    /*private void startInventoryTask() {
         boolean invalidRequest = false;
         View view = getView();
         if (view == null) {
@@ -611,9 +470,9 @@ public class SearchTagDialog extends DialogFragment {
             }
         };
         geigerSearchTask.execute();
-    }
+    }*/
 
-    @Override
+    /*@Override
     public void onDestroyView() {
         // Arrêter la recherche si elle est en cours
         if (geigerSearchTask != null) {
@@ -630,11 +489,199 @@ public class SearchTagDialog extends DialogFragment {
             ((LectureFragment) getParentFragment()).restoreNotificationListener();
         }
         super.onDestroyView();
+    }*/
+
+    /*@Override
+    public void onDismiss(@NonNull DialogInterface dialog) {
+        super.onDismiss(dialog);
+        // S'assurer que le listener est désactivé quand le dialog est fermé
+        removeNotificationListener();
+        
+        // Arrêter la recherche si elle est en cours
+        if (geigerSearchTask != null && geigerSearchTask.getStatus() == AsyncTask.Status.RUNNING) {
+            geigerSearchTask.taskCancelReason = InventoryRfidTask.TaskCancelRReason.STOP;
+        }
+        
+        // Notifier le fragment parent
+        if (getParentFragment() instanceof LectureFragment) {
+            ((LectureFragment) getParentFragment()).restoreNotificationListener();
+        }
+    }*/
+
+    // Ajoutez cette méthode pour réinitialiser le Geiger à l'état initial
+    private void resetGeigerToInitialState() {
+        if (geigerProgress != null) {
+            geigerProgress.setProgress(0);
+        }
+        if (geigerTagRssiView != null) {
+            geigerTagRssiView.setText("0.0");
+        }
+        if (geigerTagGotView != null) {
+            geigerTagGotView.setText("");
+        }
+        // Réinitialiser les variables d'alerte
+        alertRssi = 0;
+        alertRssiUpdateTime = -1;
+        if (alerting) {
+            alerting = false;
+            if (playerN != null) {
+                playerN.pause();
+            }
+        }
+        mHandler.removeCallbacks(mAlertRunnable);
     }
 
+    // Modifiez updateUIForSearchState pour réinitialiser le Geiger quand on arrête
+    private void updateUIForSearchState(boolean searching) {
+        isSearching = searching;
+        
+        if (button != null) {
+            button.setText(searching ? "Arrêter" : "Démarrer");
+        }
+        
+        if (closeButton != null) {
+            closeButton.setEnabled(!searching);
+            closeButton.setAlpha(searching ? 0.5f : 1.0f);
+        }
+        
+        Dialog dialog = getDialog();
+        if (dialog != null) {
+            dialog.setCancelable(!searching);
+            dialog.setCanceledOnTouchOutside(!searching);
+        }
+        
+        View view = getView();
+        if (view != null) {
+            EditText selectTagID = view.findViewById(R.id.selectTagID);
+            if (selectTagID != null) {
+                selectTagID.setEnabled(!searching);
+            }
+            if (seekBarAntennaPower != null) {
+                seekBarAntennaPower.setEnabled(!searching);
+            }
+            if (memoryBankSpinner != null) {
+                memoryBankSpinner.setEnabled(!searching);
+            }
+            if (seekGeiger != null) {
+                seekGeiger.setEnabled(!searching);
+            }
+            if (checkBoxGeigerTone != null) {
+                checkBoxGeigerTone.setEnabled(!searching);
+            }
+        }
+        
+        // Réinitialiser le Geiger à l'état initial quand on arrête la recherche
+        if (!searching) {
+            resetGeigerToInitialState();
+        }
+    }
+
+    // Modifiez startInventoryTask pour gérer le cas d'absence de résultat
+    private void startInventoryTask() {
+        boolean invalidRequest = false;
+        View view = getView();
+        if (view == null) {
+            updateUIForSearchState(false);
+            return;
+        }
+        
+        EditText selectTagID = view.findViewById(R.id.selectTagID);
+        if (selectTagID == null) {
+            updateUIForSearchState(false);
+            return;
+        }
+        
+        int memorybank = memoryBankSpinner != null ? memoryBankSpinner.getSelectedItemPosition() : 0;
+        int powerLevel = antennaPower;
+        
+        if (powerLevel < 0 || powerLevel > 330) {
+            invalidRequest = true;
+        } else {
+            String tagIdStr = selectTagID.getText().toString();
+            if (!MainActivity.csLibrary4A.setSelectedTag(tagIdStr, memorybank + 1, powerLevel)) {
+                invalidRequest = true;
+            } else {
+                MainActivity.csLibrary4A.startOperation(RfidReaderChipData.OperationTypes.TAG_SEARCHING);
+            }
+        }
+        
+        // Démarrer un timer pour vérifier si on reçoit des résultats
+        final long searchStartTime = System.currentTimeMillis();
+        
+        geigerSearchTask = new InventoryRfidTask(getContext(), -1, -1, 0, 0, 0, 0, 
+                invalidRequest, true,
+                null, null, geigerTagRssiView, null,
+                geigerRunTime, geigerTagGotView, geigerVoltageLevelView, null, button, rfidRateView) {
+            
+            private boolean resultReceived = false;
+            
+            @Override
+            protected void onProgressUpdate(String... output) {
+                super.onProgressUpdate(output);
+                // Si on reçoit des données, marquer qu'un résultat a été reçu
+                if (output != null && output.length > 0) {
+                    resultReceived = true;
+                }
+            }
+            
+            @Override
+            protected void onCancelled() {
+                super.onCancelled();
+                mHandler.post(() -> {
+                    updateUIForSearchState(false);
+                    // Réinitialisation déjà faite dans updateUIForSearchState
+                });
+            }
+            
+            @Override
+            protected void onPostExecute(String result) {
+                super.onPostExecute(result);
+                mHandler.post(() -> {
+                    updateUIForSearchState(false);
+                    // Réinitialisation déjà faite dans updateUIForSearchState
+                    
+                    // Si aucun résultat n'a été reçu après un certain temps, afficher un message
+                    long elapsedTime = System.currentTimeMillis() - searchStartTime;
+                    if (!resultReceived && elapsedTime > 2000) {
+                        Toast.makeText(getActivity(), "Aucun tag détecté", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        };
+        geigerSearchTask.execute();
+    }
+
+    // Modifiez onDestroyView pour réinitialiser aussi
+    @Override
+    public void onDestroyView() {
+        // Arrêter la recherche si elle est en cours
+        if (geigerSearchTask != null) {
+            geigerSearchTask.taskCancelReason = InventoryRfidTask.TaskCancelRReason.DESTORY;
+        }
+        MainActivity.csLibrary4A.restoreAfterTagSelect();
+        MainActivity.csLibrary4A.setVibrateOn(0);
+        
+        // Réinitialiser le Geiger
+        resetGeigerToInitialState();
+        
+        // Désactiver le notification listener du dialog
+        removeNotificationListener();
+        
+        // Notifier le fragment parent pour restaurer son listener
+        if (getParentFragment() instanceof LectureFragment) {
+            ((LectureFragment) getParentFragment()).restoreNotificationListener();
+        }
+        super.onDestroyView();
+    }
+
+    // Modifiez onDismiss pour réinitialiser aussi
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
         super.onDismiss(dialog);
+        
+        // Réinitialiser le Geiger
+        resetGeigerToInitialState();
+        
         // S'assurer que le listener est désactivé quand le dialog est fermé
         removeNotificationListener();
         

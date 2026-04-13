@@ -595,8 +595,8 @@ public class InventoryRfidTask extends AsyncTask<Void, String, String> {
                             MainActivity.csLibrary4A.appendToLog("openServer: serverConnectValid is " + serverConnectValid);
                             if (serverConnectValid && ALLOW_RTSAVE && true) {
                                 try {
-//                                    saveExternalTask = new SaveList2ExternalTask();
-//                                    saveExternalTask.openServer();
+                                    // saveExternalTask = new SaveList2ExternalTask();
+                                    // saveExternalTask.openServer();
                                     String msgOutput = saveExternalTask.createJSON(null, readerDevice).toString(); MainActivity.csLibrary4A.appendToLog("Json = " + msgOutput);
                                     saveExternalTask.write2Server(msgOutput);
                                     MainActivity.csLibrary4A.appendToLog("openServer: write2Server data = " + msgOutput);

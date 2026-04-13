@@ -1,0 +1,10 @@
+##Setings
+- Regulatory region: Europe,India,Vietnam1
+- Frequency order: Fixed channel
+- Fixed channel: 865,70mhz,866,30mhz,866,90mhz,867,50mhz
+- power level: (1-16)
+- power: 0-300
+- dwell time: 0-10000
+- compact' inventory delay time : 0-63ms
+- tag population: 1-9999
+- Q: 0-15
