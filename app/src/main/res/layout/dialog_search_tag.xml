@@ -3,45 +3,48 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
     android:background="@android:color/white">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Recherche du tag"
+        android:text="@string/recherche_du_tag"
+        android:background="@color/colorBlueDark2"
+        android:textColor="@color/white"
         android:textSize="20sp"
         android:textStyle="bold"
         android:gravity="center"
-        android:paddingBottom="16dp" />
+        android:padding="10dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_weight="2"
+        android:padding="10dp"
         android:orientation="vertical">
 
         <TableRow
             android:layout_width="match_parent"
-            android:visibility="gone"
             android:layout_height="wrap_content">
             <TextView
                 android:id="@+id/geigerProgressLabelMin"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:gravity="left"
+                android:textColor="@color/black"
                 android:text="20" />
             <TextView
                 android:id="@+id/geigerProgressLabelMid"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:gravity="center"
+                android:textColor="@color/black"
                 android:text="50" />
             <TextView
                 android:id="@+id/geigerProgressLabelMax"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:gravity="right"
+                android:textColor="@color/black"
                 android:text="100" />
         </TableRow>
 
@@ -50,19 +53,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"
             android:progressDrawable="@drawable/progress_gradient"
             android:max="100"
             android:progress="0" />
 
         <TextView
-            android:visibility="gone"
             android:id="@+id/geigerTagRssi"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:textSize="18sp"
+            android:textColor="@color/black"
             android:text="0.0" />
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -149,19 +150,19 @@
             <TableRow
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="20dp"
                 android:paddingLeft="@dimen/default_left_padding"
                 android:paddingRight="@dimen/default_left_padding">
                 <TextView
                     android:layout_width="0dp"
-                    android:layout_weight="1"
+                    android:layout_weight="3"
                     android:layout_height="wrap_content"
                     style="@style/style_normal_font"
                     android:text="@string/settingAntennaPower_title" />
                 <TextView
                     android:id="@+id/selectAntennaPowerValue"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
+                    android:layout_weight="2"
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     style="@style/style_normal_font"
@@ -213,27 +214,35 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
+        android:padding="5dp"
         android:orientation="horizontal">
         <TextView
             android:id="@+id/geigerRunTime"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_weight="1"
+            android:textSize="10dp"
+            android:layout_height="wrap_content"
+            android:gravity="left"/>
         <TextView
             android:id="@+id/geigerTagGot"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             android:gravity="center" />
         <TextView
             android:id="@+id/geigerVoltageLevel"
+            android:layout_weight="1"
+            android:textSize="10dp"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:gravity="right"/>
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="5dp"
         android:orientation="horizontal">
         <TextView
             android:id="@+id/geigerYield"

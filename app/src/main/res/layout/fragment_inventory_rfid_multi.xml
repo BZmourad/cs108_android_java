@@ -278,14 +278,15 @@
             android:textSize="15sp"
             tools:ignore="TextContrastCheck" />
 
-        <!--Button
+        <Button
             android:id="@+id/SubmitRfidButton"
+            android:visibility="gone"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
             style="@style/style_button_font"
             android:textSize="15sp"
-            android:text="Valider" /-->
+            android:text="Valider" />
 
         <TextView
             android:id="@+id/inventoryRfidRate1"
