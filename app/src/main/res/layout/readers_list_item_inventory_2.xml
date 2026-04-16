@@ -11,8 +11,7 @@
         <CheckBox
             android:id="@+id/reader_checkbox"
             android:layout_width="30dp"
-            android:layout_height="match_parent"
-            android:visibility="gone"/>
+            android:layout_height="match_parent"/>
         <TextView
             android:id="@+id/reader_count"
             android:layout_width="0dp"

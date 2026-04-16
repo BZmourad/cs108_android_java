@@ -1,4 +1,5 @@
-SubmitRfidButton --> reader_checkbox --> EditImmoDialog(sauf ouvrir modal)
+(android studio java)
+si on clique sur verifier (verifyRfidButton), certains ligne ne seront pas traiter(verify_status n'apparait pas).
 //** app\src\main\java\com\csl\cs108immo\fragments\LectureFragment.java */
 package com.csl.cs108immo.fragments;
 import android.content.Context;
@@ -44,6 +45,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.Date;
+import java.io.OutputStream;
+import android.content.ContentValues;
 import org.json.JSONObject;
 import android.widget.ImageView;
 import android.app.AlertDialog;
@@ -57,6 +61,8 @@ import com.csl.cs108immo.dialogs.EditImmoDialog;
 import android.app.ProgressDialog;
 import androidx.fragment.app.FragmentManager;
 import com.csl.cs108immo.dialogs.SearchTagDialog;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 public class LectureFragment extends CommonFragment {final private boolean bAdd2End = false;
     private Button settingRfidButton;
     private boolean bMultiBank = false, bMultiBankInventory = false, bctesiusInventory = false;
@@ -89,6 +95,7 @@ public class LectureFragment extends CommonFragment {final private boolean bAdd2
     private ArrayList<ReaderDevice> originalTagsList = new ArrayList<>();
     private String currentFilter = "Tous";
     private SearchTagDialog currentSearchDialog;
+    private String baseUrl2;
     void clearTagsList() {MainActivity.csLibrary4A.appendToLog("InventoryRfidMultiFragment: NOT onOptionsItemSelected: clearTagsList");
         MainActivity.csLibrary4A.appendToLog("runningInventoryRfidTask = " + MainActivity.sharedObjects.runningInventoryRfidTask + ", readerListAdapter" + (readerListAdapter != null ? " tagCount = " + String.valueOf(readerListAdapter.getCount()) : " = NULL"));
         if (MainActivity.sharedObjects.runningInventoryRfidTask) return;
@@ -274,6 +281,10 @@ public class LectureFragment extends CommonFragment {final private boolean bAdd2
                         .replace(R.id.content_frame, settingFragment, TAG_CONTENT_FRAGMENT)
                         .addToBackStack(null)
                         .commit();}});}
+        Button submitRfidButton = (Button) getActivity().findViewById(R.id.SubmitRfidButton);
+        submitRfidButton.setOnClickListener(new View.OnClickListener() {@Override
+            public void onClick(View v) {submitCheckedTags();}});
+        baseUrl2 = SharedPrefManager.getInstance(ctx).getServerUrl();
         setupFilterSpinner();}
     @Override
     public void onResume() {super.onResume();
@@ -616,8 +627,11 @@ public class LectureFragment extends CommonFragment {final private boolean bAdd2
             ImageView invStatus = listItemView.findViewById(R.id.inv_status);
             ImageButton buttonEditDetail = listItemView.findViewById(R.id.buttonEditDetail);
             ImageButton buttonAddDetail = listItemView.findViewById(R.id.buttonAddDetail);
+            CheckBox reader_checkbox = listItemView.findViewById(R.id.reader_checkbox);
             if (isverified == 1){invStatus.setVisibility(View.VISIBLE);} else{invStatus.setVisibility(View.GONE);}
             switch (status) {case 0: // NOT FOUND
+                    reader_checkbox.setChecked(false);
+                    reader_checkbox.setEnabled(false);
                     verifyStatus.setImageResource(R.drawable.ic_not_found);
                     verifyStatus.setVisibility(View.VISIBLE);
                     buttonAddDetail.setVisibility(View.VISIBLE);
@@ -629,6 +643,8 @@ public class LectureFragment extends CommonFragment {final private boolean bAdd2
                         dialog.show(getChildFragmentManager(), "AddImmoDialog");});
                     break;
                 case 1: // FOUND IN CORRECT LOCATION
+                    reader_checkbox.setChecked(true);
+                    reader_checkbox.setEnabled(true);
                     verifyStatus.setImageResource(R.drawable.ic_verified);
                     verifyStatus.setVisibility(View.VISIBLE);
                     buttonEditDetail.setVisibility(View.VISIBLE);
@@ -639,6 +655,8 @@ public class LectureFragment extends CommonFragment {final private boolean bAdd2
                         dialog.show(getChildFragmentManager(), "EditImmoDialog");});
                     break;
                 case 2: // FOUND IN WRONG LOCATION
+                    reader_checkbox.setChecked(true);
+                    reader_checkbox.setEnabled(true);
                     verifyStatus.setImageResource(R.drawable.ic_warning);
                     verifyStatus.setVisibility(View.VISIBLE);
                     buttonEditDetail.setVisibility(View.VISIBLE);
@@ -673,421 +691,146 @@ public class LectureFragment extends CommonFragment {final private boolean bAdd2
             // Create and show dialog
             SearchTagDialog dialog = SearchTagDialog.newInstance(tagId);
             dialog.show(getChildFragmentManager(), "SearchTagDialog");
-            currentSearchDialog = dialog;
-            } catch (Exception e) {MainActivity.csLibrary4A.appendToLog("Error showing search dialog: " + e.getMessage());
+            currentSearchDialog = dialog;} catch (Exception e) {MainActivity.csLibrary4A.appendToLog("Error showing search dialog: " + e.getMessage());
             Toast.makeText(getActivity(), "Error opening search dialog", Toast.LENGTH_SHORT).show();}}
     // Add method to restore notification listener
     public void restoreNotificationListener() {currentSearchDialog = null;
-        if (userVisibleHint && getUserVisibleHint()) {setNotificationListener();}}}
-
-//** app\src\main\java\com\csl\cs108immo\dialogs\EditImmoDialog.java */
-package com.csl.cs108immo.dialogs;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ProgressBar;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
-import androidx.fragment.app.DialogFragment;
-import com.csl.cs108immo.MainActivity;
-import com.csl.cs108immo.R;
-import com.csl.cs108immo.apps.SharedPrefManager;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import com.csl.cs108immo.app.db.DatabaseHelper;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.Cursor;
-import android.content.ContentValues;
-public class EditImmoDialog extends DialogFragment {
-    private EditText editTextCodeBarre, editTextNumSerie, editTextNote;
-    private TextView textViewTag;
-    private Spinner spinnerDescription, spinnerEtat, spinnerEmplacement;
-    private Button buttonUpdate, buttonCancel;
-    private ProgressBar progressBar;
-    private String tag;
-    private String codeInv, codeMission, equipe;
-    private String token;
-    private String baseUrl;
-    private boolean isOnline;
-    private VerificationCallback callback;
-    private List<String> descriptionList = new ArrayList<>();
-    private List<String> etatList = new ArrayList<>();
-    private List<String> etatCodeList = new ArrayList<>();
-    private List<String> emplacementList = new ArrayList<>();
-    private List<String> emplacementCodeList = new ArrayList<>();
-    private String currentDescription = "";
-    private String currentEtatCode = "";
-    private String currentEmplacementCode = "";
-    private String currentCodeBarre = "";
-    private String currentNumSerie = "";
-    private String currentNote = "";
-    private String codeImmo = "";
-    private int loadedCount = 0;
-    public interface VerificationCallback {void onComplete();}
-    public static EditImmoDialog newInstance(String tag, String codeInv, String codeMission, String equipe, VerificationCallback callback) {EditImmoDialog dialog = new EditImmoDialog();
-        Bundle args = new Bundle();
-        args.putString("tag", tag);
-        args.putString("codeInv", codeInv);
-        args.putString("codeMission", codeMission);
-        args.putString("equipe", equipe);
-        dialog.setArguments(args);
-        dialog.callback = callback;
-        return dialog;}
-    @Override
-    public void onCreate(Bundle savedInstanceState) {super.onCreate(savedInstanceState);
-        if (getArguments() != null) {tag = getArguments().getString("tag");
-            codeInv = getArguments().getString("codeInv");
-            codeMission = getArguments().getString("codeMission");
-            equipe = getArguments().getString("equipe");}
-        isOnline = SharedPrefManager.getInstance(getContext()).isOnlineMode();
-        token = SharedPrefManager.getInstance(getContext()).getToken();
-        baseUrl = SharedPrefManager.getInstance(getContext()).getServerUrl();
-        MainActivity.csLibrary4A.appendToLogView("EditImmoDialog: Initialisé avec tag=" + tag);}
-    @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.dialog_edit_immo, null);
-        buttonCancel = view.findViewById(R.id.buttonCancel);
-        buttonCancel.setOnClickListener(v -> dismiss());
-        textViewTag = view.findViewById(R.id.textViewTag);
-        editTextCodeBarre = view.findViewById(R.id.editTextCodeBarre);
-        editTextNumSerie = view.findViewById(R.id.editTextNumSerie);
-        editTextNote = view.findViewById(R.id.editTextNote);
-        spinnerDescription = view.findViewById(R.id.spinnerDescription);
-        spinnerEtat = view.findViewById(R.id.spinnerEtat);
-        spinnerEmplacement = view.findViewById(R.id.spinnerEmplacement);
-        buttonUpdate = view.findViewById(R.id.buttonUpdate);
-        progressBar = view.findViewById(R.id.progressBar);
-        textViewTag.setText(tag);
-        buttonUpdate.setOnClickListener(v -> updateImmo());
-        builder.setView(view);
-        Dialog dialog = builder.create();
-        dialog.setCanceledOnTouchOutside(false);
-        showProgress(true);
-        loadAllData();
-        return dialog;}
-    private void loadAllData() {loadedCount = 0;
-        if (isOnline) {loadImmoDetailsOnline();
-            loadDescriptionsOnline();
-            loadEtatsOnline();
-            loadEmplacementsOnline();} else {loadImmoDetailsOffline();
-            loadDescriptionsOffline();
-            loadEtatsOffline();
-            loadEmplacementsOffline();}}
-    private void loadImmoDetailsOffline() {new Thread(() -> {DatabaseHelper dbHelper = new DatabaseHelper(getContext());
-            SQLiteDatabase db = dbHelper.getReadableDatabase();
-            String query = "SELECT CodeImmo, Descp_immo, codeBarre_Corr, NumSerie_Corr, " +
-                           "codeEtat_Corr, codeEmpInv, Observation " +
-                           "FROM Det_inv_immo " +
-                           "WHERE CodeInventaire = ? " +
-                           "AND (CodeImmo = ? OR NumSerie_Corr = ? OR codeBarre_Corr = ?)";
-            String[] args = {codeInv, tag, tag, tag};
-            Cursor cursor = null;
-            try {cursor = db.rawQuery(query, args);
-                if (cursor.moveToFirst()) {codeImmo = cursor.getString(0);
-                    currentDescription = cursor.getString(1);
-                    currentCodeBarre = cursor.getString(2);
-                    currentNumSerie = cursor.getString(3);
-                    currentEtatCode = cursor.getString(4);
-                    currentEmplacementCode = cursor.getString(5);
-                    currentNote = cursor.getString(6);
-                    if (getActivity() != null) {getActivity().runOnUiThread(() -> {editTextCodeBarre.setText(currentCodeBarre != null ? currentCodeBarre : "");
-                            editTextNumSerie.setText(currentNumSerie != null ? currentNumSerie : "");
-                            editTextNote.setText(currentNote != null ? currentNote : "");
-                            checkAllDataLoaded();});}} else {if (getActivity() != null) {getActivity().runOnUiThread(() -> {Toast.makeText(getContext(), "Immobilisation non trouvée", Toast.LENGTH_SHORT).show();
-                            dismiss();});}}} catch (Exception e) {e.printStackTrace();} finally {if (cursor != null) cursor.close();
-                db.close();}}).start();}
-    private void loadImmoDetailsOnline() {new Thread(() -> {try {URL url = new URL(baseUrl + "api-inv-search-cod.awp?log=" + token + "&inv=" + codeInv + "&code=" + tag);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(10000);
-                connection.setReadTimeout(10000);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuilder response = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {response.append(line);}
-                reader.close();
-                JSONObject result = new JSONObject(response.toString());
-                if ("ok".equals(result.getString("sRes"))) {JSONObject tabSrch = result.getJSONObject("tab_srch");
-                    codeImmo = tabSrch.getString("CodeImmo");
-                    currentDescription = tabSrch.optString("Descp_immo", "");
-                    currentCodeBarre = tabSrch.optString("codeBarre_inv", "");
-                    currentNumSerie = tabSrch.optString("num_serie_inv", "");
-                    currentEtatCode = tabSrch.optString("codeEtat_Corr", "");
-                    currentEmplacementCode = tabSrch.optString("codeEmpInv", "");
-                    currentNote = tabSrch.optString("Observation", "");
-                    if (getActivity() != null) {getActivity().runOnUiThread(() -> {editTextCodeBarre.setText(currentCodeBarre);
-                            editTextNumSerie.setText(currentNumSerie);
-                            editTextNote.setText(currentNote);
-                            checkAllDataLoaded();});}} else {if (getActivity() != null) {getActivity().runOnUiThread(() -> {Toast.makeText(getContext(), "Impossible de charger les détails", Toast.LENGTH_SHORT).show();
-                            dismiss();});}}} catch (Exception e) {e.printStackTrace();
-                if (getActivity() != null) {getActivity().runOnUiThread(() -> {Toast.makeText(getContext(), "Erreur de chargement", Toast.LENGTH_SHORT).show();
-                        dismiss();});}}}).start();}
-    private void loadDescriptionsOffline() {new Thread(() -> {DatabaseHelper dbHelper = new DatabaseHelper(getContext());
-            SQLiteDatabase db = dbHelper.getReadableDatabase();
-            String query = "SELECT DISTINCT Descp_immo FROM Det_inv_immo WHERE CodeInventaire = ?";
-            String[] args = {codeInv};
-            Cursor cursor = null;
-            try {cursor = db.rawQuery(query, args);
-                descriptionList.clear();
-                while (cursor.moveToNext()) {String desc = cursor.getString(0);
-                    if (desc != null && !desc.isEmpty()) {descriptionList.add(desc);}}
-                if (getActivity() != null) {getActivity().runOnUiThread(() -> {ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
-                            android.R.layout.simple_spinner_item, descriptionList);
-                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                        spinnerDescription.setAdapter(adapter);
-                        // Sélectionner la description actuelle
-                        for (int i = 0; i < descriptionList.size(); i++) {if (descriptionList.get(i).equals(currentDescription)) {spinnerDescription.setSelection(i);
-                                break;}}
-                        checkAllDataLoaded();});}} catch (Exception e) {e.printStackTrace();
-                if (getActivity() != null) {getActivity().runOnUiThread(() -> checkAllDataLoaded());}} finally {if (cursor != null) cursor.close();
-                db.close();}}).start();}
-    private void loadDescriptionsOnline() {new Thread(() -> {try {URL url = new URL(baseUrl + "api-listDescp.awp?log=" + token + "&inv=" + codeInv + "&rech=");
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(10000);
-                connection.setReadTimeout(10000);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuilder response = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {response.append(line);}
-                reader.close();
-                JSONObject result = new JSONObject(response.toString());
-                if ("ok".equals(result.getString("sRes"))) {JSONArray tabSrch = result.getJSONArray("tab_srch");
-                    descriptionList.clear();
-                    for (int i = 0; i < tabSrch.length(); i++) {JSONObject obj = tabSrch.getJSONObject(i);
-                        descriptionList.add(obj.getString("lib"));}
-                    if (getActivity() != null) {getActivity().runOnUiThread(() -> {ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
-                                android.R.layout.simple_spinner_item, descriptionList);
-                            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                            spinnerDescription.setAdapter(adapter);
-                            for (int i = 0; i < descriptionList.size(); i++) {if (descriptionList.get(i).equals(currentDescription)) {spinnerDescription.setSelection(i);
-                                    break;}}
-                            checkAllDataLoaded();});}} else {if (getActivity() != null) {getActivity().runOnUiThread(() -> checkAllDataLoaded());}}} catch (Exception e) {e.printStackTrace();
-                if (getActivity() != null) {getActivity().runOnUiThread(() -> checkAllDataLoaded());}}}).start();}
-    private void loadEtatsOffline() {new Thread(() -> {DatabaseHelper dbHelper = new DatabaseHelper(getContext());
-            SQLiteDatabase db = dbHelper.getReadableDatabase();
-            String query = "SELECT LibelleEtat, DescriptionEtat FROM SouSEtat ORDER BY LibelleEtat";
-            Cursor cursor = null;
-            try {cursor = db.rawQuery(query, null);
-                etatList.clear();
-                etatCodeList.clear();
-                while (cursor.moveToNext()) {String code = cursor.getString(0);
-                    String libelle = cursor.getString(1);
-                    etatList.add(libelle);
-                    etatCodeList.add(code);}
-                if (getActivity() != null) {getActivity().runOnUiThread(() -> {ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
-                            android.R.layout.simple_spinner_item, etatList);
-                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                        spinnerEtat.setAdapter(adapter);
-                        for (int i = 0; i < etatCodeList.size(); i++) {if (etatCodeList.get(i).equals(currentEtatCode)) {spinnerEtat.setSelection(i);
-                                break;}}
-                        checkAllDataLoaded();});}} catch (Exception e) {e.printStackTrace();
-                if (getActivity() != null) {getActivity().runOnUiThread(() -> checkAllDataLoaded());}} finally {if (cursor != null) cursor.close();
-                db.close();}}).start();}
-    private void loadEtatsOnline() {new Thread(() -> {try {URL url = new URL(baseUrl + "api-Inv-attributinvImmo.awp?log=" + token + "&inv=" + codeInv);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(10000);
-                connection.setReadTimeout(10000);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuilder response = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {response.append(line);}
-                reader.close();
-                JSONObject result = new JSONObject(response.toString());
-                if ("ok".equals(result.getString("sRes"))) {JSONArray tabEtat = result.getJSONArray("tab_etat");
-                    etatList.clear();
-                    etatCodeList.clear();
-                    for (int i = 0; i < tabEtat.length(); i++) {JSONObject obj = tabEtat.getJSONObject(i);
-                        etatList.add(obj.getString("nom"));
-                        etatCodeList.add(obj.getString("code"));}
-                    if (getActivity() != null) {getActivity().runOnUiThread(() -> {ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
-                                android.R.layout.simple_spinner_item, etatList);
-                            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                            spinnerEtat.setAdapter(adapter);
-                            for (int i = 0; i < etatCodeList.size(); i++) {if (etatCodeList.get(i).equals(currentEtatCode)) {spinnerEtat.setSelection(i);
-                                    break;}}
-                            checkAllDataLoaded();});}} else {if (getActivity() != null) {getActivity().runOnUiThread(() -> checkAllDataLoaded());}}} catch (Exception e) {e.printStackTrace();
-                if (getActivity() != null) {getActivity().runOnUiThread(() -> checkAllDataLoaded());}}}).start();}
-    private void loadEmplacementsOffline() {new Thread(() -> {DatabaseHelper dbHelper = new DatabaseHelper(getContext());
-            SQLiteDatabase db = dbHelper.getReadableDatabase();
-            String query = "SELECT DISTINCT Inv_EquipeInventaire.CodeEmplacement AS CodeEmplacement, " +
-                           "ArbreEmp.code AS Libelle " +
-                           "FROM Inv_EquipeInventaire, ArbreEmp " +
-                           "WHERE Inv_EquipeInventaire.CodeEmplacement = ArbreEmp.code " +
-                           "AND ArbreEmp.Idparent <> '#' " +
-                           "AND Inv_EquipeInventaire.Codeinv = ? " +
-                           "AND Inv_EquipeInventaire.codemission = ? " +
-                           "AND Inv_EquipeInventaire.codeEquipe = ?";
-            String[] args = {codeInv, codeMission, equipe};
-            Cursor cursor = null;
-            try {cursor = db.rawQuery(query, args);
-                emplacementList.clear();
-                emplacementCodeList.clear();
-                while (cursor.moveToNext()) {String code = cursor.getString(0);
-                    String libelle = cursor.getString(1);
-                    emplacementList.add(libelle);
-                    emplacementCodeList.add(code);}
-                if (getActivity() != null) {getActivity().runOnUiThread(() -> {ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
-                            android.R.layout.simple_spinner_item, emplacementList);
-                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                        spinnerEmplacement.setAdapter(adapter);
-                        for (int i = 0; i < emplacementCodeList.size(); i++) {if (emplacementCodeList.get(i).equals(currentEmplacementCode)) {spinnerEmplacement.setSelection(i);
-                                break;}}
-                        checkAllDataLoaded();});}} catch (Exception e) {e.printStackTrace();
-                if (getActivity() != null) {getActivity().runOnUiThread(() -> checkAllDataLoaded());}} finally {if (cursor != null) cursor.close();
-                db.close();}}).start();}
-    private void loadEmplacementsOnline() {new Thread(() -> {try {URL url = new URL(baseUrl + "api-lecture-empl.awp?log=" + token + "&inv=" + codeInv +
-                    "&mis=" + codeMission + "&eqp=" + equipe);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(10000);
-                connection.setReadTimeout(10000);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuilder response = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {response.append(line);}
-                reader.close();
-                JSONObject result = new JSONObject(response.toString());
-                if ("ok".equals(result.getString("sRes"))) {JSONArray tabEmpl = result.getJSONArray("tab_empl");
-                    emplacementList.clear();
-                    emplacementCodeList.clear();
-                    for (int i = 0; i < tabEmpl.length(); i++) {JSONObject obj = tabEmpl.getJSONObject(i);
-                        emplacementList.add(obj.getString("sCode"));
-                        emplacementCodeList.add(obj.getString("sCode"));}
-                    if (getActivity() != null) {getActivity().runOnUiThread(() -> {ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
-                                android.R.layout.simple_spinner_item, emplacementList);
-                            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                            spinnerEmplacement.setAdapter(adapter);
-                            for (int i = 0; i < emplacementCodeList.size(); i++) {if (emplacementCodeList.get(i).equals(currentEmplacementCode)) {spinnerEmplacement.setSelection(i);
-                                    break;}}
-                            checkAllDataLoaded();});}} else {if (getActivity() != null) {getActivity().runOnUiThread(() -> checkAllDataLoaded());}}} catch (Exception e) {e.printStackTrace();
-                if (getActivity() != null) {getActivity().runOnUiThread(() -> checkAllDataLoaded());}}}).start();}
-    private void checkAllDataLoaded() {loadedCount++;
-        if (loadedCount >= 4 && getActivity() != null) {getActivity().runOnUiThread(() -> showProgress(false));}}
-    private void showProgress(boolean show) {if (show) {progressBar.setVisibility(View.VISIBLE);
-            buttonUpdate.setEnabled(false);
-            buttonCancel.setEnabled(false);} else {progressBar.setVisibility(View.GONE);
-            buttonUpdate.setEnabled(true);
-            buttonCancel.setEnabled(true);}}
-    private void updateImmo() {if (spinnerDescription.getSelectedItem() == null || spinnerDescription.getSelectedItemPosition() < 0) {Toast.makeText(getContext(), "Veuillez sélectionner une description", Toast.LENGTH_SHORT).show();
+        if (userVisibleHint && getUserVisibleHint()) {setNotificationListener();}}
+    private void submitCheckedTags() {List<ReaderDevice> checkedTags = new ArrayList<>();
+        // Collect all checked tags
+        for (int i = 0; i < readerListAdapter.getCount(); i++) {ReaderDevice device = readerListAdapter.getItem(i);
+            if (device != null) {// Get the view for this position to check the checkbox state
+                View listItemView = getListView().getChildAt(i - getListView().getFirstVisiblePosition());
+                if (listItemView != null) {CheckBox readerCheckbox = listItemView.findViewById(R.id.reader_checkbox);
+                    if (readerCheckbox != null && readerCheckbox.isChecked() && readerCheckbox.isEnabled()) {checkedTags.add(device);}}}}
+        if (checkedTags.isEmpty()) {Toast.makeText(getActivity(), "Aucun tag sélectionné", Toast.LENGTH_SHORT).show();
             return;}
-        if (spinnerEtat.getSelectedItem() == null || spinnerEtat.getSelectedItemPosition() < 0) {Toast.makeText(getContext(), "Veuillez sélectionner un état", Toast.LENGTH_SHORT).show();
+        // Show progress dialog
+        ProgressDialog submitProgressDialog = new ProgressDialog(getActivity());
+        submitProgressDialog.setMessage("Validation en cours...");
+        submitProgressDialog.setCancelable(false);
+        submitProgressDialog.show();
+        // Process tags one by one
+        submitCheckedTagsAsync(checkedTags, 0, submitProgressDialog);}
+    private void submitCheckedTagsAsync(final List<ReaderDevice> tags, final int index, final ProgressDialog progressDialog) {if (index >= tags.size()) {if (progressDialog != null && progressDialog.isShowing()) {progressDialog.dismiss();}
+            Toast.makeText(getActivity(), "Validation terminée", Toast.LENGTH_SHORT).show();
             return;}
-        if (spinnerEmplacement.getSelectedItem() == null || spinnerEmplacement.getSelectedItemPosition() < 0) {Toast.makeText(getContext(), "Veuillez sélectionner un emplacement", Toast.LENGTH_SHORT).show();
-            return;}
-        showProgress(true);
-        buttonUpdate.setEnabled(false);
-        if (isOnline) {updateImmoOnline();} else {updateImmoOffline();}}
-    private void updateImmoOffline() {final String description = spinnerDescription.getSelectedItem().toString();
-        final String codeBarre = editTextCodeBarre.getText().toString().trim();
-        final String numSerie = editTextNumSerie.getText().toString().trim();
-        final String note = editTextNote.getText().toString().trim();
-        final String codeEtat = etatCodeList.get(spinnerEtat.getSelectedItemPosition());
-        final String codeEmp = emplacementCodeList.get(spinnerEmplacement.getSelectedItemPosition());
-        new Thread(() -> {DatabaseHelper dbHelper = new DatabaseHelper(getContext());
+        final ReaderDevice device = tags.get(index);
+        final String tag = device.getAddress();
+        progressDialog.setMessage("Validation " + (index + 1) + "/" + tags.size() + " : " + tag);
+        if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {submitTagOnline(tag, new SubmitCallback() {@Override
+                public void onComplete(boolean success, String message) {if (success) {// Update UI to show success
+                        //updateTagSubmitStatus(index, tag, true);}
+                    // Continue with next tag
+                    submitCheckedTagsAsync(tags, index + 1, progressDialog);}});} else {submitTagOffline(tag, new SubmitCallback() {@Override
+                public void onComplete(boolean success, String message) {if (success) {// Update UI to show success
+                        //updateTagSubmitStatus(index, tag, true);}
+                    // Continue with next tag
+                    submitCheckedTagsAsync(tags, index + 1, progressDialog);}});}}
+    private interface SubmitCallback {void onComplete(boolean success, String message);}
+    private void submitTagOnline(String tag, SubmitCallback callback) {new Thread(() -> {HttpURLConnection connection = null;
+            try {// First, get the immobilisation details
+                String searchUrl = baseUrl2 + "api-inv-search-cod.awp?log=" + token + "&inv=" + codeInv + "&code=" + tag;
+                URL url = new URL(searchUrl);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(10000);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {response.append(line);}
+                reader.close();
+                connection.disconnect();
+                JSONObject result = new JSONObject(response.toString());
+                if ("ok".equals(result.getString("sRes")) && result.has("tab_srch")) {JSONObject tabSrch = result.getJSONObject("tab_srch");
+                    String codeImmo = tabSrch.getString("CodeImmo");
+                    String currentDescription = tabSrch.optString("Descp_immo", "");
+                    String currentCodeBarre = tabSrch.optString("codeBarre_inv", "");
+                    String currentNumSerie = tabSrch.optString("num_serie_inv", "");
+                    String currentEtatCode = tabSrch.optString("codeEtat_Corr", "");
+                    String currentEmplacementCode = tabSrch.optString("codeEmpInv", "");
+                    String currentNote = tabSrch.optString("Observation", "");
+                    // Update with current emplacement (validate)
+                    String username = SharedPrefManager.getInstance(ctx).getUsername();
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                    String dateheurenow = sdf.format(new Date());
+                    URL updateUrl = new URL(baseUrl2 + "api-update-det-inv.awp?log=" + token + "&inv=" + codeInv + "&immo=" + codeImmo);
+                    connection = (HttpURLConnection) updateUrl.openConnection();
+                    connection.setRequestMethod("POST");
+                    connection.setRequestProperty("Content-Type", "application/json");
+                    connection.setDoOutput(true);
+                    connection.setConnectTimeout(15000);
+                    connection.setReadTimeout(15000);
+                    JSONObject jsonParam = new JSONObject();
+                    jsonParam.put("user", username);
+                    jsonParam.put("desc", currentDescription);
+                    jsonParam.put("note", currentNote);
+                    jsonParam.put("code_barre", currentCodeBarre);
+                    jsonParam.put("num_serie", currentNumSerie);
+                    jsonParam.put("code_etat", currentEtatCode);
+                    jsonParam.put("code_emp", currentEmplacementCode); // Keep same emplacement (validation)
+                    jsonParam.put("mission", codeMission);
+                    jsonParam.put("equipe", equipe);
+                    OutputStream os = connection.getOutputStream();
+                    os.write(jsonParam.toString().getBytes("UTF-8"));
+                    os.flush();
+                    os.close();
+                    int responseCode = connection.getResponseCode();
+                    if (responseCode == HttpURLConnection.HTTP_OK) {BufferedReader updateReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                        StringBuilder updateResponse = new StringBuilder();
+                        while ((line = updateReader.readLine()) != null) {updateResponse.append(line);}
+                        updateReader.close();
+                        JSONObject updateResult = new JSONObject(updateResponse.toString());
+                        if ("ok".equals(updateResult.optString("sRes"))) {if (getActivity() != null) {getActivity().runOnUiThread(() -> callback.onComplete(true, "OK"));}
+                            return;}}}
+                if (getActivity() != null) {getActivity().runOnUiThread(() -> callback.onComplete(false, "Échec"));}} catch (Exception e) {e.printStackTrace();
+                if (getActivity() != null) {getActivity().runOnUiThread(() -> callback.onComplete(false, e.getMessage()));}} finally {if (connection != null) {connection.disconnect();}}}).start();}
+    private void submitTagOffline(String tag, SubmitCallback callback) {new Thread(() -> {DatabaseHelper dbHelper = new DatabaseHelper(ctx);
             SQLiteDatabase db = null;
             try {db = dbHelper.getWritableDatabase();
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                String dateheurenow = sdf.format(new Date());
-                String userCode = SharedPrefManager.getInstance(getContext()).getUserCode();
-                // Récupérer l'emplacement théorique actuel
-                String selectQuery = "SELECT codeEmpInv FROM Det_inv_immo WHERE CodeInventaire = ? AND CodeImmo = ?";
-                String[] selectArgs = {codeInv, codeImmo};
+                // Find the immobilisation
+                String query = "SELECT CodeImmo, Descp_immo, codeBarre_Corr, NumSerie_Corr, " +
+                            "codeEtat_Corr, Observation, codeEmpInv " +
+                            "FROM Det_inv_immo " +
+                            "WHERE CodeInventaire = ? " +
+                            "AND (CodeImmo = ? OR NumSerie_Corr = ? OR codeBarre_Corr = ?)";
+                String[] args = {codeInv, tag, tag, tag};
                 Cursor cursor = null;
-                String currentEmp = null;
-                try {cursor = db.rawQuery(selectQuery, selectArgs);
-                    if (cursor.moveToFirst()) {currentEmp = cursor.getString(0);}} finally {if (cursor != null) cursor.close();}
-                ContentValues values = new ContentValues();
-                values.put("Descp_immo", description);
-                values.put("DateLecture", dateheurenow);
-                values.put("UserLecture", userCode);
-                values.put("codeEmpInv", codeEmp);
-                values.put("codemission", codeMission);
-                values.put("codeEquipe", equipe);
-                values.put("codeBarre_Corr", codeBarre);
-                values.put("NumSerie_Corr", numSerie);
-                values.put("Observation", note);
-                values.put("issync", 2);
-                values.put("codeEtat_Corr", codeEtat);
-                if (currentEmp != null && !currentEmp.equals(codeEmp)) {values.put("nbr_Crt", 1);
-                    values.put("nbr_Crt_valid", 1);
-                    values.put("EtatCorrection", 4);} else {values.put("nbr_Crt", 0);
-                    values.put("nbr_Crt_valid", 0);
-                    if (currentEmp != null && currentEmp.equals(codeEmp)) {values.put("EtatCorrection", 1);
+                try {cursor = db.rawQuery(query, args);
+                    if (cursor.moveToFirst()) {String codeImmo = cursor.getString(0);
+                        String currentDescription = cursor.getString(1);
+                        String currentCodeBarre = cursor.getString(2);
+                        String currentNumSerie = cursor.getString(3);
+                        String currentEtatCode = cursor.getString(4);
+                        String currentNote = cursor.getString(5);
+                        String currentEmp = cursor.getString(6);
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                        String dateheurenow = sdf.format(new Date());
+                        String userCode = SharedPrefManager.getInstance(ctx).getUserCode();
+                        ContentValues values = new ContentValues();
                         values.put("DateValidation", dateheurenow);
-                        values.put("Uservalidation", userCode);} else {values.put("EtatCorrection", 2);}}
-                String whereClause = "CodeInventaire = ? AND CodeImmo = ?";
-                String[] whereArgs = {codeInv, codeImmo};
-                int rowsAffected = db.update(DatabaseHelper.TABLE_DET_INV_IMMO, values, whereClause, whereArgs);
-                if (getActivity() != null) {final int finalRowsAffected = rowsAffected;
-                    getActivity().runOnUiThread(() -> {if (finalRowsAffected > 0) {Toast.makeText(getContext(), "Immobilisation modifiée en mode offline", Toast.LENGTH_LONG).show();
-                            dismiss();
-                            if (callback != null) callback.onComplete();} else {showProgress(false);
-                            Toast.makeText(getContext(), "Erreur lors de la modification", Toast.LENGTH_LONG).show();}});}} catch (Exception e) {e.printStackTrace();
-                if (getActivity() != null) {getActivity().runOnUiThread(() -> {showProgress(false);
-                        Toast.makeText(getContext(), "Erreur: " + e.getMessage(), Toast.LENGTH_LONG).show();});}} finally {if (db != null) db.close();}}).start();}
-    private void updateImmoOnline() {final String username = SharedPrefManager.getInstance(getContext()).getUsername();
-        final String description = spinnerDescription.getSelectedItem().toString();
-        final String codeBarre = editTextCodeBarre.getText().toString().trim();
-        final String numSerie = editTextNumSerie.getText().toString().trim();
-        final String note = editTextNote.getText().toString().trim();
-        final String codeEtat = etatCodeList.get(spinnerEtat.getSelectedItemPosition());
-        final String codeEmp = emplacementCodeList.get(spinnerEmplacement.getSelectedItemPosition());
-        new Thread(() -> {HttpURLConnection connection = null;
-            try {URL url = new URL(baseUrl + "api-update-det-inv.awp?log=" + token + "&inv=" + codeInv + "&immo=" + codeImmo);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("POST");
-                connection.setRequestProperty("Content-Type", "application/json");
-                connection.setDoOutput(true);
-                connection.setConnectTimeout(15000);
-                connection.setReadTimeout(15000);
-                JSONObject jsonParam = new JSONObject();
-                jsonParam.put("user", username);
-                jsonParam.put("desc", description);
-                jsonParam.put("note", note);
-                jsonParam.put("code_barre", codeBarre);
-                jsonParam.put("num_serie", numSerie);
-                jsonParam.put("code_etat", codeEtat);
-                jsonParam.put("code_emp", codeEmp);
-                jsonParam.put("mission", codeMission);
-                jsonParam.put("equipe", equipe);
-                OutputStream os = connection.getOutputStream();
-                os.write(jsonParam.toString().getBytes("UTF-8"));
-                os.flush();
-                os.close();
-                int responseCode = connection.getResponseCode();
-                BufferedReader reader;
-                if (responseCode == HttpURLConnection.HTTP_OK) {reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));} else {reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));}
-                StringBuilder response = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {response.append(line);}
-                reader.close();
-                JSONObject result = new JSONObject(response.toString());
-                if ("ok".equals(result.optString("sRes"))) {if (getActivity() != null) {getActivity().runOnUiThread(() -> {Toast.makeText(getContext(), "Immobilisation modifiée avec succès", Toast.LENGTH_LONG).show();
-                            dismiss();
-                            if (callback != null) callback.onComplete();});}} else {final String errorMsg = result.optString("sRes", "Erreur inconnue");
-                    if (getActivity() != null) {getActivity().runOnUiThread(() -> {showProgress(false);
-                            Toast.makeText(getContext(), "Erreur: " + errorMsg, Toast.LENGTH_LONG).show();});}}} catch (Exception e) {e.printStackTrace();
-                if (getActivity() != null) {getActivity().runOnUiThread(() -> {showProgress(false);
-                        Toast.makeText(getContext(), "Erreur de connexion: " + e.getMessage(), Toast.LENGTH_LONG).show();});}} finally {if (connection != null) connection.disconnect();}}).start();}}
+                        values.put("Uservalidation", userCode);
+                        values.put("EtatCorrection", 1); // Validated
+                        values.put("issync", 2); // Mark as modified for sync
+                        String whereClause = "CodeInventaire = ? AND CodeImmo = ?";
+                        String[] whereArgs = {codeInv, codeImmo};
+                        int rowsAffected = db.update(DatabaseHelper.TABLE_DET_INV_IMMO, values, whereClause, whereArgs);
+                        if (getActivity() != null) {final boolean success = rowsAffected > 0;
+                            getActivity().runOnUiThread(() -> callback.onComplete(success, success ? "OK" : "Échec"));}
+                        return;}} finally {if (cursor != null) cursor.close();}
+                if (getActivity() != null) {getActivity().runOnUiThread(() -> callback.onComplete(false, "Non trouvé"));}} catch (Exception e) {e.printStackTrace();
+                if (getActivity() != null) {getActivity().runOnUiThread(() -> callback.onComplete(false, e.getMessage()));}} finally {if (db != null) db.close();}}).start();}
+    private void updateTagSubmitStatus(int position, String tag, boolean success) {if (getActivity() != null) {getActivity().runOnUiThread(() -> {View listItemView = getListView().getChildAt(position - getListView().getFirstVisiblePosition());
+                if (listItemView != null) {ImageView verifyStatus = listItemView.findViewById(R.id.verify_status);
+                    ImageView invStatus = listItemView.findViewById(R.id.inv_status);
+                    CheckBox readerCheckbox = listItemView.findViewById(R.id.reader_checkbox);
+                    if (success) {verifyStatus.setImageResource(R.drawable.ic_verified);
+                        verifyStatus.setVisibility(View.VISIBLE);
+                        invStatus.setVisibility(View.VISIBLE);
+                        readerCheckbox.setChecked(true);
+                        readerCheckbox.setEnabled(false); // Disable after validation}
+                    readerListAdapter.notifyDataSetChanged();}});}}}
 //** app\src\main\java\com\csl\cs108immo\adapters\ReaderListAdapter.java */
 package com.csl.cs108immo.adapters;
 import android.content.Context;
@@ -1232,150 +975,41 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {final boolean
         return convertView;}
     public boolean getSelectDupElim() { return selectDupElim; }
     public void setSelectDupElim(boolean selectDupElim) { this.selectDupElim = selectDupElim; }}
-
-//** app\src\main\res\layout\dialog_edit_immo.xml */
-<?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fillViewport="true">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Modification d'immobilisation"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:paddingBottom="16dp"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Code RFID / Code Immo"
-            android:textSize="14sp"
-            android:textColor="#666666"/>
-        <TextView
-            android:id="@+id/textViewTag"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:padding="12dp"
-            android:background="#F5F5F5"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="8dp"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Description *"
-            android:textSize="14sp"
-            android:textColor="#666666"/>
-        <Spinner
-            android:id="@+id/spinnerDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="12dp"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Code à barre"
-            android:textSize="14sp"
-            android:textColor="#666666"/>
-        <EditText
-            android:id="@+id/editTextCodeBarre"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:padding="12dp"
-            android:textSize="14sp"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="N° série"
-            android:textSize="14sp"
-            android:textColor="#666666"/>
-        <EditText
-            android:id="@+id/editTextNumSerie"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:padding="12dp"
-            android:textSize="14sp"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="État *"
-            android:textSize="14sp"
-            android:textColor="#666666"/>
-        <Spinner
-            android:id="@+id/spinnerEtat"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="12dp"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Emplacement *"
-            android:textSize="14sp"
-            android:textColor="#666666"/>
-        <Spinner
-            android:id="@+id/spinnerEmplacement"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="12dp"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Observation"
-            android:textSize="14sp"
-            android:textColor="#666666"/>
-        <EditText
-            android:id="@+id/editTextNote"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textMultiLine"
-            android:minLines="3"
-            android:padding="12dp"
-            android:textSize="14sp"/>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="16dp">
-            <Button
-                android:id="@+id/buttonCancel"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:text="Fermer"
-                android:padding="12dp"
-                android:textSize="12sp"
-                android:backgroundTint="#808080"/>
-            <Button
-                android:id="@+id/buttonUpdate"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:padding="12dp"
-                android:text="Modifier"
-                android:textSize="12sp" />
-        </LinearLayout>
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone"
-            android:layout_marginTop="16dp"/>
-    </LinearLayout>
-</ScrollView>
+//** app\src\main\java\com\csl\cs108immo\adapters\DrawerListAdapter.java */
+package com.csl.cs108immo.adapters;
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.TextView;
+import com.csl.cs108immo.DrawerListContent;
+import com.csl.cs108immo.R;
+import java.util.List;
+/**
+ * Class to handle the data for NavigationDrawer.
+ */
+public class DrawerListAdapter extends ArrayAdapter {Context mContext;
+    List<DrawerListContent.DrawerItem> mData = null;
+    /**
+     * Construtor. Handles the initialization.
+     *
+     * @param context  - context to be used
+     * @param resource - layout to be inflated
+     * @param objects  - navidation drawer items
+     */
+    public DrawerListAdapter(Context context, int resource, List<DrawerListContent.DrawerItem> objects) {super(context, resource, objects);
+        this.mContext = context;
+        this.mData = objects;}
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {if (convertView == null) {LayoutInflater inflater = (LayoutInflater) mContext
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            convertView = inflater.inflate(R.layout.drawer_list_item, parent, false);}
+        DrawerListContent.DrawerItem item = mData.get(position);
+        //Set the label
+        TextView label1 = (TextView) convertView.findViewById(R.id.drawerItemName);
+        label1.setText(item.content);
+        return convertView;}}
 //** app\src\main\res\layout\readers_list_item_inventory_2.xml */
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -1390,8 +1024,7 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {final boolean
         <CheckBox
             android:id="@+id/reader_checkbox"
             android:layout_width="30dp"
-            android:layout_height="match_parent"
-            android:visibility="gone"/>
+            android:layout_height="match_parent"/>
         <TextView
             android:id="@+id/reader_count"
             android:layout_width="0dp"
@@ -1443,8 +1076,7 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {final boolean
             android:src="@drawable/ic_edit"
             android:contentDescription="Edit"
             android:background="#4B77BE"
-            android:visibility="gone"
-            />
+            android:visibility="gone" />
         <ImageButton
             android:id="@+id/buttonAddDetail"
             android:layout_width="wrap_content"
@@ -1455,8 +1087,7 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {final boolean
             android:src="@drawable/plus"
             android:contentDescription="Add"
             android:background="#4B77BE"
-            android:visibility="gone"
-            />
+            android:visibility="gone" />
         <TextView
             android:id="@+id/reader_rssi"
             android:layout_width="0dp"
@@ -1502,7 +1133,6 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {final boolean
             style="@style/style_small_font"
             android:visibility="gone" />
     </LinearLayout>
-
 </LinearLayout>
 //** app\src\main\res\layout\fragment_inventory_rfid_multi.xml */
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -1750,7 +1380,6 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {final boolean
             tools:ignore="TextContrastCheck" />
         <Button
             android:id="@+id/SubmitRfidButton"
-            android:visibility="gone"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"

@@ -42,6 +42,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.Date;
+import java.io.OutputStream;
+import android.content.ContentValues;
 
 import org.json.JSONObject;
 import android.widget.ImageView;
@@ -58,6 +61,8 @@ import android.app.ProgressDialog;
 import androidx.fragment.app.FragmentManager;
 
 import com.csl.cs108immo.dialogs.SearchTagDialog;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 public class LectureFragment extends CommonFragment {
     final private boolean bAdd2End = false;
@@ -92,6 +97,7 @@ public class LectureFragment extends CommonFragment {
     private ArrayList<ReaderDevice> originalTagsList = new ArrayList<>();
     private String currentFilter = "Tous";
     private SearchTagDialog currentSearchDialog;
+    private String baseUrl2;
 
     void clearTagsList() {
         MainActivity.csLibrary4A.appendToLog("InventoryRfidMultiFragment: NOT onOptionsItemSelected: clearTagsList");
@@ -431,6 +437,14 @@ public class LectureFragment extends CommonFragment {
                 }
             });
         }
+        Button submitRfidButton = (Button) getActivity().findViewById(R.id.SubmitRfidButton);
+        submitRfidButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                submitCheckedTags();
+            }
+        });
+        baseUrl2 = SharedPrefManager.getInstance(ctx).getServerUrl();
         setupFilterSpinner();
     }
     @Override
@@ -1046,6 +1060,7 @@ public class LectureFragment extends CommonFragment {
             ImageView invStatus = listItemView.findViewById(R.id.inv_status);
             ImageButton buttonEditDetail = listItemView.findViewById(R.id.buttonEditDetail);
             ImageButton buttonAddDetail = listItemView.findViewById(R.id.buttonAddDetail);
+            CheckBox reader_checkbox = listItemView.findViewById(R.id.reader_checkbox);
             if (isverified == 1){
                 invStatus.setVisibility(View.VISIBLE);
             } else{
@@ -1053,6 +1068,8 @@ public class LectureFragment extends CommonFragment {
             }
             switch (status) {
                 case 0: // NOT FOUND
+                    reader_checkbox.setChecked(false);
+                    reader_checkbox.setEnabled(false);
                     verifyStatus.setImageResource(R.drawable.ic_not_found);
                     verifyStatus.setVisibility(View.VISIBLE);
                     buttonAddDetail.setVisibility(View.VISIBLE);
@@ -1084,6 +1101,8 @@ public class LectureFragment extends CommonFragment {
                     });
                     break;
                 case 1: // FOUND IN CORRECT LOCATION
+                    reader_checkbox.setChecked(true);
+                    reader_checkbox.setEnabled(true);
                     verifyStatus.setImageResource(R.drawable.ic_verified);
                     verifyStatus.setVisibility(View.VISIBLE);
                     buttonEditDetail.setVisibility(View.VISIBLE);
@@ -1114,6 +1133,8 @@ public class LectureFragment extends CommonFragment {
                     });
                     break;
                 case 2: // FOUND IN WRONG LOCATION
+                    reader_checkbox.setChecked(true);
+                    reader_checkbox.setEnabled(true);
                     verifyStatus.setImageResource(R.drawable.ic_warning);
                     verifyStatus.setVisibility(View.VISIBLE);
                     buttonEditDetail.setVisibility(View.VISIBLE);
@@ -1206,6 +1227,269 @@ public class LectureFragment extends CommonFragment {
         currentSearchDialog = null;
         if (userVisibleHint && getUserVisibleHint()) {
             setNotificationListener();
+        }
+    }
+
+    private void submitCheckedTags() {
+        List<ReaderDevice> checkedTags = new ArrayList<>();
+        
+        // Collect all checked tags
+        for (int i = 0; i < readerListAdapter.getCount(); i++) {
+            ReaderDevice device = readerListAdapter.getItem(i);
+            if (device != null) {
+                // Get the view for this position to check the checkbox state
+                View listItemView = getListView().getChildAt(i - getListView().getFirstVisiblePosition());
+                if (listItemView != null) {
+                    CheckBox readerCheckbox = listItemView.findViewById(R.id.reader_checkbox);
+                    if (readerCheckbox != null && readerCheckbox.isChecked() && readerCheckbox.isEnabled()) {
+                        checkedTags.add(device);
+                    }
+                }
+            }
+        }
+        
+        if (checkedTags.isEmpty()) {
+            Toast.makeText(getActivity(), "Aucun tag sélectionné", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Show progress dialog
+        ProgressDialog submitProgressDialog = new ProgressDialog(getActivity());
+        submitProgressDialog.setMessage("Validation en cours...");
+        submitProgressDialog.setCancelable(false);
+        submitProgressDialog.show();
+        
+        // Process tags one by one
+        submitCheckedTagsAsync(checkedTags, 0, submitProgressDialog);
+    }
+
+    private void submitCheckedTagsAsync(final List<ReaderDevice> tags, final int index, final ProgressDialog progressDialog) {
+        if (index >= tags.size()) {
+            if (progressDialog != null && progressDialog.isShowing()) {
+                progressDialog.dismiss();
+            }
+            Toast.makeText(getActivity(), "Validation terminée", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        final ReaderDevice device = tags.get(index);
+        final String tag = device.getAddress();
+        
+        progressDialog.setMessage("Validation " + (index + 1) + "/" + tags.size() + " : " + tag);
+        
+        if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
+            submitTagOnline(tag, new SubmitCallback() {
+                @Override
+                public void onComplete(boolean success, String message) {
+                    if (success) {
+                        // Update UI to show success
+                        //updateTagSubmitStatus(index, tag, true);
+                    }
+                    // Continue with next tag
+                    submitCheckedTagsAsync(tags, index + 1, progressDialog);
+                }
+            });
+        } else {
+            submitTagOffline(tag, new SubmitCallback() {
+                @Override
+                public void onComplete(boolean success, String message) {
+                    if (success) {
+                        // Update UI to show success
+                        //updateTagSubmitStatus(index, tag, true);
+                    }
+                    // Continue with next tag
+                    submitCheckedTagsAsync(tags, index + 1, progressDialog);
+                }
+            });
+        }
+    }
+
+    private interface SubmitCallback {
+        void onComplete(boolean success, String message);
+    }
+
+    private void submitTagOnline(String tag, SubmitCallback callback) {
+        new Thread(() -> {
+            HttpURLConnection connection = null;
+            try {
+                // First, get the immobilisation details
+                String searchUrl = baseUrl2 + "api-inv-search-cod.awp?log=" + token + "&inv=" + codeInv + "&code=" + tag;
+                URL url = new URL(searchUrl);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(10000);
+                
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+                reader.close();
+                connection.disconnect();
+                
+                JSONObject result = new JSONObject(response.toString());
+                
+                if ("ok".equals(result.getString("sRes")) && result.has("tab_srch")) {
+                    JSONObject tabSrch = result.getJSONObject("tab_srch");
+                    String codeImmo = tabSrch.getString("CodeImmo");
+                    String currentDescription = tabSrch.optString("Descp_immo", "");
+                    String currentCodeBarre = tabSrch.optString("codeBarre_inv", "");
+                    String currentNumSerie = tabSrch.optString("num_serie_inv", "");
+                    String currentEtatCode = tabSrch.optString("codeEtat_Corr", "");
+                    String currentEmplacementCode = tabSrch.optString("codeEmpInv", "");
+                    String currentNote = tabSrch.optString("Observation", "");
+                    
+                    // Update with current emplacement (validate)
+                    String username = SharedPrefManager.getInstance(ctx).getUsername();
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                    String dateheurenow = sdf.format(new Date());
+                    
+                    URL updateUrl = new URL(baseUrl2 + "api-update-det-inv.awp?log=" + token + "&inv=" + codeInv + "&immo=" + codeImmo);
+                    connection = (HttpURLConnection) updateUrl.openConnection();
+                    connection.setRequestMethod("POST");
+                    connection.setRequestProperty("Content-Type", "application/json");
+                    connection.setDoOutput(true);
+                    connection.setConnectTimeout(15000);
+                    connection.setReadTimeout(15000);
+                    
+                    JSONObject jsonParam = new JSONObject();
+                    jsonParam.put("user", username);
+                    jsonParam.put("desc", currentDescription);
+                    jsonParam.put("note", currentNote);
+                    jsonParam.put("code_barre", currentCodeBarre);
+                    jsonParam.put("num_serie", currentNumSerie);
+                    jsonParam.put("code_etat", currentEtatCode);
+                    jsonParam.put("code_emp", currentEmplacementCode); // Keep same emplacement (validation)
+                    jsonParam.put("mission", codeMission);
+                    jsonParam.put("equipe", equipe);
+                    
+                    OutputStream os = connection.getOutputStream();
+                    os.write(jsonParam.toString().getBytes("UTF-8"));
+                    os.flush();
+                    os.close();
+                    
+                    int responseCode = connection.getResponseCode();
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        BufferedReader updateReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                        StringBuilder updateResponse = new StringBuilder();
+                        while ((line = updateReader.readLine()) != null) {
+                            updateResponse.append(line);
+                        }
+                        updateReader.close();
+                        
+                        JSONObject updateResult = new JSONObject(updateResponse.toString());
+                        if ("ok".equals(updateResult.optString("sRes"))) {
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> callback.onComplete(true, "OK"));
+                            }
+                            return;
+                        }
+                    }
+                }
+                
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> callback.onComplete(false, "Échec"));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> callback.onComplete(false, e.getMessage()));
+                }
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+        }).start();
+    }
+
+    private void submitTagOffline(String tag, SubmitCallback callback) {
+        new Thread(() -> {
+            DatabaseHelper dbHelper = new DatabaseHelper(ctx);
+            SQLiteDatabase db = null;
+            try {
+                db = dbHelper.getWritableDatabase();
+                
+                // Find the immobilisation
+                String query = "SELECT CodeImmo, Descp_immo, codeBarre_Corr, NumSerie_Corr, " +
+                            "codeEtat_Corr, Observation, codeEmpInv " +
+                            "FROM Det_inv_immo " +
+                            "WHERE CodeInventaire = ? " +
+                            "AND (CodeImmo = ? OR NumSerie_Corr = ? OR codeBarre_Corr = ?)";
+                String[] args = {codeInv, tag, tag, tag};
+                Cursor cursor = null;
+                
+                try {
+                    cursor = db.rawQuery(query, args);
+                    if (cursor.moveToFirst()) {
+                        String codeImmo = cursor.getString(0);
+                        String currentDescription = cursor.getString(1);
+                        String currentCodeBarre = cursor.getString(2);
+                        String currentNumSerie = cursor.getString(3);
+                        String currentEtatCode = cursor.getString(4);
+                        String currentNote = cursor.getString(5);
+                        String currentEmp = cursor.getString(6);
+                        
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                        String dateheurenow = sdf.format(new Date());
+                        String userCode = SharedPrefManager.getInstance(ctx).getUserCode();
+                        
+                        ContentValues values = new ContentValues();
+                        values.put("DateValidation", dateheurenow);
+                        values.put("Uservalidation", userCode);
+                        values.put("EtatCorrection", 1); // Validated
+                        values.put("issync", 2); // Mark as modified for sync
+                        
+                        String whereClause = "CodeInventaire = ? AND CodeImmo = ?";
+                        String[] whereArgs = {codeInv, codeImmo};
+                        
+                        int rowsAffected = db.update(DatabaseHelper.TABLE_DET_INV_IMMO, values, whereClause, whereArgs);
+                        
+                        if (getActivity() != null) {
+                            final boolean success = rowsAffected > 0;
+                            getActivity().runOnUiThread(() -> callback.onComplete(success, success ? "OK" : "Échec"));
+                        }
+                        return;
+                    }
+                } finally {
+                    if (cursor != null) cursor.close();
+                }
+                
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> callback.onComplete(false, "Non trouvé"));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> callback.onComplete(false, e.getMessage()));
+                }
+            } finally {
+                if (db != null) db.close();
+            }
+        }).start();
+    }
+
+    private void updateTagSubmitStatus(int position, String tag, boolean success) {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                View listItemView = getListView().getChildAt(position - getListView().getFirstVisiblePosition());
+                if (listItemView != null) {
+                    ImageView verifyStatus = listItemView.findViewById(R.id.verify_status);
+                    ImageView invStatus = listItemView.findViewById(R.id.inv_status);
+                    CheckBox readerCheckbox = listItemView.findViewById(R.id.reader_checkbox);
+                    
+                    if (success) {
+                        verifyStatus.setImageResource(R.drawable.ic_verified);
+                        verifyStatus.setVisibility(View.VISIBLE);
+                        invStatus.setVisibility(View.VISIBLE);
+                        readerCheckbox.setChecked(true);
+                        readerCheckbox.setEnabled(false); // Disable after validation
+                    }
+                    readerListAdapter.notifyDataSetChanged();
+                }
+            });
         }
     }
 
