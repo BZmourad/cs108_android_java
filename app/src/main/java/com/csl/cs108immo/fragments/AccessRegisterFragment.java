@@ -199,7 +199,7 @@ public class AccessRegisterFragment extends CommonFragment {
                     tableRowSelectBank.setVisibility(View.VISIBLE);
                     textViewSelectedTags.setText("");
                     buttonSelect.setText("Read");
-                } else if (buttonSelect.getText().toString().contains("Stop")) {
+                } else if (buttonSelect.getText().toString().contains("Arrêter")) {
                     inventoryRfidTask.taskCancelReason = InventoryRfidTask.TaskCancelRReason.BUTTON_RELEASE;
                     mHandler.removeCallbacks(runnableSelect);
                     textViewSelectedTags.setText("");
@@ -228,7 +228,7 @@ public class AccessRegisterFragment extends CommonFragment {
                     inventoryRfidTask = new InventoryRfidTask();
                     inventoryRfidTask.execute();
                     MainActivity.sharedObjects.serviceArrayList.clear(); epcArrayList.clear();
-                    mHandler.post(runnableSelect); buttonSelect.setText("Stop");
+                    mHandler.post(runnableSelect); buttonSelect.setText("Arrêter");
                 }
             }
         });

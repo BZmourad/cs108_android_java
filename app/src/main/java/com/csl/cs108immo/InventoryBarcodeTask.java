@@ -33,7 +33,7 @@ public class InventoryBarcodeTask extends AsyncTask<Void, String, String> {
 
     protected void onPreExecute() {
         MainActivity.sharedObjects.runningInventoryBarcodeTask = true;
-        if (button != null) button.setText("Stop"); if (button1 != null) button1.setText("Stop");
+        if (button != null) button.setText("Arrêter"); if (button1 != null) button1.setText("Arrêter");
         total = 0; allTotal = 0; yield = 0;
         if (tagsList != null) {
             yield = tagsList.size();

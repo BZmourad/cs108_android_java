@@ -89,7 +89,7 @@ public class InventoryRfidTask extends AsyncTask<Void, String, String> {
             taskCancelReason = TaskCancelRReason.INVALD_REQUEST;
             Toast.makeText(MainActivity.mContext, "Invalid Request.", Toast.LENGTH_SHORT).show();
         }
-        if (button != null) button.setText("Stop");
+        if (button != null) button.setText("Arrêter");
         MainActivity.mSensorConnector.mLocationDevice.turnOn(true);
         MainActivity.mSensorConnector.mSensorDevice.turnOn(true);
         if (ALLOW_RTSAVE) {
@@ -481,10 +481,12 @@ public class InventoryRfidTask extends AsyncTask<Void, String, String> {
                     timeMillis = System.currentTimeMillis();
 
                     double rssiGeiger = rssi;
-                    if (MainActivity.csLibrary4A.getRssiDisplaySetting() != 0)
-                        rssiGeiger -= MainActivity.csLibrary4A.dBuV_dBm_constant;
+                    /*if (MainActivity.csLibrary4A.getRssiDisplaySetting() != 0)
+                        rssiGeiger -= MainActivity.csLibrary4A.dBuV_dBm_constant;*/
+                    /*if (geigerTagRssiView != null)
+                        geigerTagRssiView.setText(String.format("%.1f", rssiGeiger));*/
                     if (geigerTagRssiView != null)
-                        geigerTagRssiView.setText(String.format("%.1f", rssiGeiger));
+                        geigerTagRssiView.setText(String.valueOf((int) rssiGeiger));
                     if (geigerTagGotView != null) geigerTagGotView.setText(strEpc);
 
                     if (tagsList == null) {
@@ -841,7 +843,7 @@ public class InventoryRfidTask extends AsyncTask<Void, String, String> {
             MainActivity.csLibrary4A.appendToLog("INVENDING: Toasting");
             if (mytoast != null)    mytoast.show();
         }
-        if (button != null) button.setText("Start");
+        if (button != null) button.setText("Démarrer");
         MainActivity.csLibrary4A.appendToLog("InventoryRfidTask.DeviceConnectTask4InventoryEnding set runningInventoryRfidTask as false ");
         MainActivity.sharedObjects.runningInventoryRfidTask = false;
         if (endingMessaage != null) {

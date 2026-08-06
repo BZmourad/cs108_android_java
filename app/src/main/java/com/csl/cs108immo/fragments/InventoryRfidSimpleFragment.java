@@ -277,7 +277,7 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
             MainActivity.sharedObjects.tagsList.clear(); MainActivity.sharedObjects.tagsIndexList.clear();
             rfidYieldView.setText("");
             rfidRateView.setText("");
-            button.setText("Stop");
+            button.setText("Arrêter");
             if (bAdd2End) rfidListView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
             else rfidListView.setSelection(0);
 
@@ -351,7 +351,7 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
                 myHandler.postDelayed(runnableSimpleInentory, 200);
             } else {
                 bRunningInventory = false;
-                button.setText("Start"); buttonShow.setVisibility(View.VISIBLE);
+                button.setText("Démarrer"); buttonShow.setVisibility(View.VISIBLE);
             }
         }
     };
@@ -437,7 +437,7 @@ public class InventoryRfidSimpleFragment extends CommonFragment {
                 MainActivity.csLibrary4A.setNotificationListener(null);
                 mHandler.postDelayed(runnableCheckReady, 500);
             } else {
-                button.setText("Start");
+                button.setText("Démarrer");
                 button.setEnabled(true);
                 setNotificationListener();
             }

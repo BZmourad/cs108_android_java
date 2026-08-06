@@ -516,6 +516,7 @@ public class InventoryRfidiMultiFragment extends CommonFragment {
     @Override
     public void onResume() {
         super.onResume();
+        clearTagsList();
         if (DEBUG) MainActivity.csLibrary4A.appendToLog("InventoryRfidiMultiFragment().onResume(): userVisibleHint = " + userVisibleHint);
         if (userVisibleHint) setNotificationListener();
     }
@@ -787,7 +788,7 @@ public class InventoryRfidiMultiFragment extends CommonFragment {
                 MainActivity.csLibrary4A.setNotificationListener(null);
                 mHandler.postDelayed(runnableCheckReady, 500);
             } else {
-                button.setText("Start");
+                button.setText("Démarrer");
                 button.setEnabled(true);
                 if (userVisibleHint) setNotificationListener();
             }

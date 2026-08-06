@@ -572,7 +572,7 @@ public class RfidLectureFragment extends CommonFragment {
                 MainActivity.csLibrary4A.setNotificationListener(null);
                 mHandler.postDelayed(runnableCheckReady, 500);
             } else {
-                button.setText("Start");
+                button.setText("Démarrer");
                 button.setEnabled(true);
                 if (userVisibleHint) setNotificationListener();
             }

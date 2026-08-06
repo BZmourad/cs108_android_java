@@ -114,13 +114,16 @@ public class SearchTagDialog extends DialogFragment {
         TextView textViewProgressLabelMax = view.findViewById(R.id.geigerProgressLabelMax);
         
         if (textViewProgressLabelMin != null) {
-            textViewProgressLabelMin.setText(String.format("%.0f", MainActivity.csLibrary4A.getRssiDisplaySetting() != 0 ? labelMin : labelMin + dBuV_dBm_constant));
+            //textViewProgressLabelMin.setText(String.format("%.0f", MainActivity.csLibrary4A.getRssiDisplaySetting() != 0 ? labelMin : labelMin + dBuV_dBm_constant));
+            textViewProgressLabelMin.setText("0");
         }
         if (textViewProgressLabelMid != null) {
-            textViewProgressLabelMid.setText(String.format("%.0f", MainActivity.csLibrary4A.getRssiDisplaySetting() != 0 ? labelMin + (labelMax - labelMin) / 2 : labelMin + (labelMax - labelMin) / 2 + dBuV_dBm_constant));
+            //textViewProgressLabelMid.setText(String.format("%.0f", MainActivity.csLibrary4A.getRssiDisplaySetting() != 0 ? labelMin + (labelMax - labelMin) / 2 : labelMin + (labelMax - labelMin) / 2 + dBuV_dBm_constant));
+            textViewProgressLabelMid.setText("50");
         }
         if (textViewProgressLabelMax != null) {
-            textViewProgressLabelMax.setText(String.format("%.0f", MainActivity.csLibrary4A.getRssiDisplaySetting() != 0 ? labelMax : labelMax + dBuV_dBm_constant));
+            //textViewProgressLabelMax.setText(String.format("%.0f", MainActivity.csLibrary4A.getRssiDisplaySetting() != 0 ? labelMax : labelMax + dBuV_dBm_constant));
+            textViewProgressLabelMax.setText("100");
         }
 
         geigerProgress = view.findViewById(R.id.geigerProgress);
@@ -245,7 +248,7 @@ public class SearchTagDialog extends DialogFragment {
                         String text = s.toString();
                         if (text.isEmpty()) return;
                         double rssi = Double.parseDouble(text);
-                        if (MainActivity.csLibrary4A.getRssiDisplaySetting() != 0) rssi += dBuV_dBm_constant;
+                        //if (MainActivity.csLibrary4A.getRssiDisplaySetting() != 0) rssi += dBuV_dBm_constant;
                         double progressPos = geigerProgress.getMax() * (rssi - labelMin - dBuV_dBm_constant) / (labelMax - labelMin);
                         if (progressPos < 0) progressPos = 0;
                         if (progressPos > geigerProgress.getMax()) progressPos = geigerProgress.getMax();
@@ -514,7 +517,7 @@ public class SearchTagDialog extends DialogFragment {
             geigerProgress.setProgress(0);
         }
         if (geigerTagRssiView != null) {
-            geigerTagRssiView.setText("0.0");
+            geigerTagRssiView.setText("0");
         }
         if (geigerTagGotView != null) {
             geigerTagGotView.setText("");

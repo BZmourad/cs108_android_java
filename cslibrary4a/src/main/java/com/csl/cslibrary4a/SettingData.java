@@ -333,7 +333,7 @@ public class SettingData {
     }
     public void saveSetting2File(String strLibraryVersion, boolean bChannelHoppingStatus, int iCurrentProfile) {
         boolean DEBUG = true;
-        if (DEBUG) appendToLog("Start");
+        if (DEBUG) appendToLog("Démarrer");
         FileOutputStream stream;
         try {
             stream = new FileOutputStream(fileSetting);
@@ -448,7 +448,7 @@ public class SettingData {
     }
     public void saveForegroundSetting2File() {
         boolean DEBUG = true;
-        if (DEBUG) appendToLog("Start");
+        if (DEBUG) appendToLog("Démarrer");
 
         FileOutputStream stream;
         try {

@@ -450,6 +450,7 @@ public class LectureFragment extends CommonFragment {
     @Override
     public void onResume() {
         super.onResume();
+        clearTagsList();
         if (DEBUG) MainActivity.csLibrary4A.appendToLog("LectureFragment().onResume(): userVisibleHint = " + userVisibleHint);
         if (userVisibleHint) setNotificationListener();
     }
@@ -730,7 +731,7 @@ public class LectureFragment extends CommonFragment {
                 MainActivity.csLibrary4A.setNotificationListener(null);
                 mHandler.postDelayed(runnableCheckReady, 500);
             } else {
-                button.setText("Start");
+                button.setText("Démarrer");
                 button.setEnabled(true);
                 if (userVisibleHint) setNotificationListener();
             }

@@ -270,6 +270,7 @@ public class InventoryBarcodeFragment extends CommonFragment {
     @Override
     public void onResume() {
         super.onResume();
+        clearTagsList();
         if (true) MainActivity.csLibrary4A.appendToLog("InventoryBarcodeFragment().onResume(): userVisibleHint = " + userVisibleHint);
         if (userVisibleHint) {
             MainActivity.csLibrary4A.setAutoBarStartSTop(true); setNotificationListener();

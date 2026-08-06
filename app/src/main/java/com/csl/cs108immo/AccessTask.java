@@ -126,7 +126,7 @@ public class AccessTask extends AsyncTask<Void, String, String> {
                 buttonText1 += buttonText1.substring(buttonText.length() - 1);
             } else buttonText1 = buttonText;
         }
-        if (repeat > 1 || buttonText.length() == 0) button.setText("Stop");
+        if (repeat > 1 || buttonText.length() == 0) button.setText("Arrêter");
         else {
             if (Character.isUpperCase(strLastChar.charAt(0))) button.setText(buttonText1 + "ING");
             else button.setText(buttonText1 + "ing");
