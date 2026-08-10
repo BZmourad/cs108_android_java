@@ -21,32 +21,16 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Code RFID / Code Immo"
+            android:text="Code RFID"
             android:textSize="14sp"
             android:textColor="#666666"/>
-        <TextView
-            android:id="@+id/textViewTag"
+        <EditText
+            android:id="@+id/editTextRFID"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text=""
-            android:textSize="14sp"
-            android:textStyle="bold"
+            android:inputType="text"
             android:padding="12dp"
-            android:background="#F5F5F5"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Description *"
-            android:textSize="14sp"
-            android:textColor="#666666"/>
-        <Spinner
-            android:id="@+id/spinnerDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="12dp"/>
+            android:textSize="14sp"/>
 
         <TextView
             android:layout_width="match_parent"
@@ -61,6 +45,18 @@
             android:inputType="text"
             android:padding="12dp"
             android:textSize="14sp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Description *"
+            android:textSize="14sp"
+            android:textColor="#666666"/>
+        <Spinner
+            android:id="@+id/spinnerDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"/>
 
         <TextView
             android:layout_width="match_parent"
@@ -99,21 +95,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="12dp"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Observation"
-            android:textSize="14sp"
-            android:textColor="#666666"/>
-        <EditText
-            android:id="@+id/editTextNote"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textMultiLine"
-            android:minLines="3"
-            android:padding="12dp"
-            android:textSize="14sp"/>
 
         <LinearLayout
             android:layout_width="match_parent"

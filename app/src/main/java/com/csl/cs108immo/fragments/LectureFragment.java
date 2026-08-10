@@ -600,6 +600,30 @@ public class LectureFragment extends CommonFragment {
             if (buttonTrigger) inventoryRfidTask.taskCancelReason = InventoryRfidTask.TaskCancelRReason.BUTTON_RELEASE;
             else    inventoryRfidTask.taskCancelReason = InventoryRfidTask.TaskCancelRReason.STOP;
             MainActivity.csLibrary4A.appendToLogView("CANCELLING: StartStopHandler generates taskCancelReason = " + inventoryRfidTask.taskCancelReason.toString());
+
+            // Wait for the task to finish, then trigger verification
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    // Check if inventory task has actually stopped
+                    if (inventoryRfidTask != null && inventoryRfidTask.getStatus() == AsyncTask.Status.FINISHED) {
+                        // Auto-trigger verification after scan stops
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
+                                        verifyTagsList();
+                                    } else {
+                                        verifyTagsListOffline();
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            }, 1000); // 1 second delay to ensure the task has finished
+
         } else MainActivity.csLibrary4A.appendToLog("BtData. Stop when still writing !!!");
     }
     void startInventoryTask() {

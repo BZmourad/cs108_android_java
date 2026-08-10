@@ -362,6 +362,29 @@ public class InventoryBarcodeFragment extends CommonFragment {
             MainActivity.csLibrary4A.appendToLog("BARTRIGGER: Stop Barcode inventory");
             if (buttonTrigger) inventoryBarcodeTask.taskCancelReason = InventoryBarcodeTask.TaskCancelRReason.BUTTON_RELEASE;
             else    inventoryBarcodeTask.taskCancelReason = InventoryBarcodeTask.TaskCancelRReason.STOP;
+
+            // Wait for the task to finish, then trigger verification
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    // Check if inventory task has actually stopped
+                    if (inventoryBarcodeTask != null && inventoryBarcodeTask.getStatus() == AsyncTask.Status.FINISHED) {
+                        // Auto-trigger verification after scan stops
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
+                                        verifyTagsList();
+                                    } else {
+                                        verifyTagsListOffline();
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            }, 1000); // 1 second delay to ensure the task has finished
         }
     }
 

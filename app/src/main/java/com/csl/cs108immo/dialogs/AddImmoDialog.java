@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+
 import com.csl.cs108immo.app.db.DatabaseHelper;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.Cursor;
@@ -36,8 +38,7 @@ import android.content.ContentValues;
 
 public class AddImmoDialog extends DialogFragment {
     
-    private EditText editTextCodeBarre, editTextNumSerie, editTextNote;
-    private TextView textViewTag;
+    private EditText editTextCodeBarre, editTextNumSerie, editTextRFID;
     private Spinner spinnerDescription, spinnerEtat, spinnerEmplacement;
     private Button buttonSave, buttonCancel;
     private ProgressBar progressBar;
@@ -98,18 +99,18 @@ public class AddImmoDialog extends DialogFragment {
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.dialog_add_immo, null);
         
-        textViewTag = view.findViewById(R.id.textViewTag);
+        editTextRFID = view.findViewById(R.id.editTextRFID);
         editTextCodeBarre = view.findViewById(R.id.editTextCodeBarre);
         editTextNumSerie = view.findViewById(R.id.editTextNumSerie);
-        editTextNote = view.findViewById(R.id.editTextNote);
         spinnerDescription = view.findViewById(R.id.spinnerDescription);
         spinnerEtat = view.findViewById(R.id.spinnerEtat);
         spinnerEmplacement = view.findViewById(R.id.spinnerEmplacement);
         buttonSave = view.findViewById(R.id.buttonSave);
         buttonCancel = view.findViewById(R.id.buttonCancel);
         progressBar = view.findViewById(R.id.progressBar);
-        
-        textViewTag.setText(tag);
+        if(Objects.equals(CodeBarre, "")){
+            editTextRFID.setText(tag);
+        }
         editTextCodeBarre.setText(CodeBarre);
         
         buttonSave.setOnClickListener(v -> saveImmo());
@@ -480,8 +481,9 @@ public class AddImmoDialog extends DialogFragment {
     private void saveImmoOffline() {
         final String description = spinnerDescription.getSelectedItem().toString();
         final String codeBarre = editTextCodeBarre.getText().toString().trim();
+        final String codeRFID = editTextRFID.getText().toString().trim();
+        
         final String numSerie = editTextNumSerie.getText().toString().trim();
-        final String note = editTextNote.getText().toString().trim();
         final String codeEtat = etatCodeList.get(spinnerEtat.getSelectedItemPosition());
         final String codeEmp = emplacementCodeList.get(spinnerEmplacement.getSelectedItemPosition());
         
@@ -498,8 +500,8 @@ public class AddImmoDialog extends DialogFragment {
                 values.put("CodeInventaire", codeInv);
                 values.put("CodeImmo", tag);
                 values.put("Descp_immo", description);
-                values.put("Observation", note);
                 values.put("codeBarre_Corr", codeBarre);
+                values.put("ancienCode_Corr", codeRFID);
                 values.put("NumSerie_Corr", numSerie);
                 values.put("codeEtat_Corr", codeEtat);
                 values.put("codeEmpInv", codeEmp);
@@ -540,9 +542,9 @@ public class AddImmoDialog extends DialogFragment {
     private void saveImmoOnline() {
         final String username = SharedPrefManager.getInstance(getContext()).getUsername();
         final String description = spinnerDescription.getSelectedItem().toString();
+        final String codeRFID = editTextRFID.getText().toString().trim();
         final String codeBarre = editTextCodeBarre.getText().toString().trim();
         final String numSerie = editTextNumSerie.getText().toString().trim();
-        final String note = editTextNote.getText().toString().trim();
         final String codeEtat = etatCodeList.get(spinnerEtat.getSelectedItemPosition());
         final String codeEmp = emplacementCodeList.get(spinnerEmplacement.getSelectedItemPosition());
         
@@ -560,9 +562,9 @@ public class AddImmoDialog extends DialogFragment {
                 JSONObject jsonParam = new JSONObject();
                 jsonParam.put("user", username);
                 jsonParam.put("code_immo", tag);
+                jsonParam.put("ancien_code", codeRFID);
                 jsonParam.put("code_art", "");
                 jsonParam.put("desc", description);
-                jsonParam.put("note", note);
                 jsonParam.put("code_barre", codeBarre);
                 jsonParam.put("num_serie", numSerie);
                 jsonParam.put("code_etat", codeEtat);
