@@ -17,4 +17,10 @@
     <color name="warning">#FF9800</color>
     <color name="success">#4CAF50</color>
     <color name="danger">#F44336</color>
+    <color name="colorBackground">#F5F5F5</color>
+    <color name="colorSecondary">#FF9800</color>
+    <color name="colorSuccess">#4CAF50</color>
+    <color name="colorError">#F44336</color>
+    <color name="colorLightGray">#E0E0E0</color>
+    <color name="colorGray">#9E9E9E</color>
 </resources>
