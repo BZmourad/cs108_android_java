@@ -145,7 +145,21 @@ public class LectureFragment extends CommonFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState, bMultiBankInventory | bctesiusInventory);
-        return inflater.inflate(R.layout.fragment_inventory_rfid_multi, container, false);
+        View view = inflater.inflate(R.layout.fragment_inventory_rfid_multi, container, false);
+    
+        // Vérifier si le lecteur est connecté
+        LinearLayout disconnectedLayout = view.findViewById(R.id.disconnectedLayout);
+        LinearLayout mainContentLayout = view.findViewById(R.id.mainContentLayout);
+        
+        if (MainActivity.csLibrary4A.isBleConnected() == false) {
+            disconnectedLayout.setVisibility(View.VISIBLE);
+            mainContentLayout.setVisibility(View.GONE);
+        } else {
+            disconnectedLayout.setVisibility(View.GONE);
+            mainContentLayout.setVisibility(View.VISIBLE);
+        }
+        
+        return view;
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -279,231 +293,242 @@ public class LectureFragment extends CommonFragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        MainActivity.selectFor = -1;
-        if (bMultiBankInventory | bctesiusInventory) {
-            ActionBar actionBar;
-            actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-            //actionBar.setIcon(R.drawable.dl_inv);
-            if (bMultiBankInventory) actionBar.setTitle(R.string.title_activity_inventoryRfidMulti);
-            else if (bctesiusInventory) {
-                if (mDid.matches("E2003")) actionBar.setTitle("Alien");
-                else if (mDid.matches("E200B0")) actionBar.setTitle(R.string.title_activity_bap);
-                else if (mDid.matches("E203510")) actionBar.setTitle(R.string.title_activity_ctesisu);
-                else if (mDid.matches("E283A")) actionBar.setTitle("AS321x");
-            }
-        }
-        if (bMultiBankInventory) {
-            LinearLayout linearLayout = (LinearLayout) getActivity().findViewById(R.id.inventoryMultibankSetting);
-            linearLayout.setVisibility(View.VISIBLE);
-            checkBoxDupElim = (CheckBox) getActivity().findViewById(R.id.accessInventoryDupElim);
-            checkBoxDupElim.setVisibility(View.VISIBLE);
-            checkBoxDupElim.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (checkBoxDupElim.isChecked()) readerListAdapter.setSelectDupElim(true);
-                    else readerListAdapter.setSelectDupElim(false);
+        if(MainActivity.csLibrary4A.isBleConnected()){
+            MainActivity.selectFor = -1;
+            if (bMultiBankInventory | bctesiusInventory) {
+                ActionBar actionBar;
+                actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+                //actionBar.setIcon(R.drawable.dl_inv);
+                if (bMultiBankInventory) actionBar.setTitle(R.string.title_activity_inventoryRfidMulti);
+                else if (bctesiusInventory) {
+                    if (mDid.matches("E2003")) actionBar.setTitle("Alien");
+                    else if (mDid.matches("E200B0")) actionBar.setTitle(R.string.title_activity_bap);
+                    else if (mDid.matches("E203510")) actionBar.setTitle(R.string.title_activity_ctesisu);
+                    else if (mDid.matches("E283A")) actionBar.setTitle("AS321x");
                 }
-            });
-        }
-        checkBoxFilterByTid = (CheckBox) getActivity().findViewById(R.id.accessInventoryFilterByTid);
-        MainActivity.csLibrary4A.appendToLog("InventoryRfidMultiFragment.onActivityCreated: mDid = " + mDid + ", MainActivity.mDid = " + MainActivity.mDid);
-        if (mDid != null) {
-            if (mDid.indexOf("E2827001") == 0) {
-                checkBoxFilterByTid.setVisibility(View.VISIBLE);
-                //checkBoxFilterByTid.setText("filter FM13DT160 only");
             }
-        } else if (bMultiBankInventory == false) {
-            checkBoxFilterByEpc = (CheckBox) getActivity().findViewById(R.id.accessInventoryFilterByEpc);
-            //checkBoxFilterByEpc.setVisibility(View.VISIBLE);
-        }
-        checkBoxFilterByProtect = (CheckBox) getActivity().findViewById(R.id.accessInventoryFilterByProtect);
-        editTextProtectPassword = (EditText) getActivity().findViewById(R.id.accessInventoryProtectPassword);
-        editTextProtectPassword.addTextChangedListener(new GenericTextWatcher(editTextProtectPassword, 8));
-        editTextProtectPassword.setText("00000000");
-        ArrayAdapter<CharSequence> lockAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.memoryBank_options, R.layout.custom_spinner_layout);
-        lockAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerBank1 = (Spinner) getActivity().findViewById(R.id.accessInventoryBank1);
-        spinnerBank1.setAdapter(lockAdapter); spinnerBank1.setSelection(2);
-        spinnerBank2 = (Spinner) getActivity().findViewById(R.id.accessInventoryBank2);
-        spinnerBank2.setAdapter(lockAdapter); spinnerBank2.setSelection(3);
-        rfidListView = (ListView) getActivity().findViewById(R.id.inventoryRfidList1);
-        rfidEmptyView = (TextView) getActivity().findViewById(R.id.inventoryRfidEmpty1);
-        rfidListView.setEmptyView(rfidEmptyView);
-        boolean bSelect4detail = true;
-        if (bMultiBankInventory) bSelect4detail = false;
-        boolean needDupElim = true;
-        boolean need4Extra1 = MainActivity.csLibrary4A.getPortNumber() > 1 ? true : false;
-        boolean need4Extra2 = (mDid != null ? true : false);
-        //readerListAdapter = new ReaderListAdapter(getActivity(), R.layout.readers_list_item_inventory_2, MainActivity.sharedObjects.tagsList, bSelect4detail, true, needDupElim, need4Extra1, need4Extra2);
-        readerListAdapter = new ReaderListAdapter(getActivity(), R.layout.readers_list_item_inventory_2, MainActivity.sharedObjects.tagsList, bSelect4detail, true, needDupElim, need4Extra1, need4Extra2, tagId -> showSearchTagDialog(tagId));
-        rfidListView.setAdapter(readerListAdapter);
-        rfidListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-        rfidListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ReaderDevice readerDevice = readerListAdapter.getItem(position);
-                if (DEBUG) MainActivity.csLibrary4A.appendToLog("Position  = " + position);
-                if (readerDevice.getSelected()) {
-                    readerDevice.setSelected(false);
-                } else {
-                    readerDevice.setSelected(true);
-                    String strPopup = readerDevice.getUpcSerial();
-                    MainActivity.csLibrary4A.appendToLog("strPopup = " + (strPopup == null ? "null" : strPopup));
-                    if (strPopup != null && strPopup.trim().length() != 0) {
-                        strPopup = MainActivity.csLibrary4A.getUpcSerialDetail(strPopup);
-                        CustomPopupWindow epcSerialPopupWindow = new CustomPopupWindow(MainActivity.mContext);
-                        epcSerialPopupWindow.popupStart(strPopup, false);
+            if (bMultiBankInventory) {
+                LinearLayout linearLayout = (LinearLayout) getActivity().findViewById(R.id.inventoryMultibankSetting);
+                linearLayout.setVisibility(View.VISIBLE);
+                checkBoxDupElim = (CheckBox) getActivity().findViewById(R.id.accessInventoryDupElim);
+                checkBoxDupElim.setVisibility(View.VISIBLE);
+                checkBoxDupElim.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (checkBoxDupElim.isChecked()) readerListAdapter.setSelectDupElim(true);
+                        else readerListAdapter.setSelectDupElim(false);
                     }
+                });
+            }
+            checkBoxFilterByTid = (CheckBox) getActivity().findViewById(R.id.accessInventoryFilterByTid);
+            MainActivity.csLibrary4A.appendToLog("InventoryRfidMultiFragment.onActivityCreated: mDid = " + mDid + ", MainActivity.mDid = " + MainActivity.mDid);
+            if (mDid != null) {
+                if (mDid.indexOf("E2827001") == 0) {
+                    checkBoxFilterByTid.setVisibility(View.VISIBLE);
+                    //checkBoxFilterByTid.setText("filter FM13DT160 only");
                 }
-                MainActivity.sharedObjects.tagsList.set(position, readerDevice);
-                if (readerDevice.getSelected()) MainActivity.tagSelected = readerDevice;
-                else MainActivity.tagSelected = null;
-                for (int i = 0; i < MainActivity.sharedObjects.tagsList.size(); i++) {
-                    if (i != position) {
-                        ReaderDevice readerDevice1 = MainActivity.sharedObjects.tagsList.get(i);
-                        if (readerDevice1.getSelected()) {
-                            readerDevice1.setSelected(false);
-                            MainActivity.sharedObjects.tagsList.set(i, readerDevice1);
+            } else if (bMultiBankInventory == false) {
+                checkBoxFilterByEpc = (CheckBox) getActivity().findViewById(R.id.accessInventoryFilterByEpc);
+                //checkBoxFilterByEpc.setVisibility(View.VISIBLE);
+            }
+            checkBoxFilterByProtect = (CheckBox) getActivity().findViewById(R.id.accessInventoryFilterByProtect);
+            editTextProtectPassword = (EditText) getActivity().findViewById(R.id.accessInventoryProtectPassword);
+            editTextProtectPassword.addTextChangedListener(new GenericTextWatcher(editTextProtectPassword, 8));
+            editTextProtectPassword.setText("00000000");
+            ArrayAdapter<CharSequence> lockAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.memoryBank_options, R.layout.custom_spinner_layout);
+            lockAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinnerBank1 = (Spinner) getActivity().findViewById(R.id.accessInventoryBank1);
+            spinnerBank1.setAdapter(lockAdapter); spinnerBank1.setSelection(2);
+            spinnerBank2 = (Spinner) getActivity().findViewById(R.id.accessInventoryBank2);
+            spinnerBank2.setAdapter(lockAdapter); spinnerBank2.setSelection(3);
+            rfidListView = (ListView) getActivity().findViewById(R.id.inventoryRfidList1);
+            rfidEmptyView = (TextView) getActivity().findViewById(R.id.inventoryRfidEmpty1);
+            rfidListView.setEmptyView(rfidEmptyView);
+            boolean bSelect4detail = true;
+            if (bMultiBankInventory) bSelect4detail = false;
+            boolean needDupElim = true;
+            boolean need4Extra1 = MainActivity.csLibrary4A.getPortNumber() > 1 ? true : false;
+            boolean need4Extra2 = (mDid != null ? true : false);
+            //readerListAdapter = new ReaderListAdapter(getActivity(), R.layout.readers_list_item_inventory_2, MainActivity.sharedObjects.tagsList, bSelect4detail, true, needDupElim, need4Extra1, need4Extra2);
+            readerListAdapter = new ReaderListAdapter(getActivity(), R.layout.readers_list_item_inventory_2, MainActivity.sharedObjects.tagsList, bSelect4detail, true, needDupElim, need4Extra1, need4Extra2, tagId -> showSearchTagDialog(tagId));
+            rfidListView.setAdapter(readerListAdapter);
+            rfidListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+            rfidListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    ReaderDevice readerDevice = readerListAdapter.getItem(position);
+                    if (DEBUG) MainActivity.csLibrary4A.appendToLog("Position  = " + position);
+                    if (readerDevice.getSelected()) {
+                        readerDevice.setSelected(false);
+                    } else {
+                        readerDevice.setSelected(true);
+                        String strPopup = readerDevice.getUpcSerial();
+                        MainActivity.csLibrary4A.appendToLog("strPopup = " + (strPopup == null ? "null" : strPopup));
+                        if (strPopup != null && strPopup.trim().length() != 0) {
+                            strPopup = MainActivity.csLibrary4A.getUpcSerialDetail(strPopup);
+                            CustomPopupWindow epcSerialPopupWindow = new CustomPopupWindow(MainActivity.mContext);
+                            epcSerialPopupWindow.popupStart(strPopup, false);
                         }
                     }
-                }
-                readerListAdapter.notifyDataSetChanged();
-            }
-        });
-        rfidRunTime = (TextView) getActivity().findViewById(R.id.inventoryRfidRunTime1);
-        rfidVoltageLevel = (TextView) getActivity().findViewById(R.id.inventoryRfidVoltageLevel1);
-        TextView rfidFilterOn = (TextView) getActivity().findViewById(R.id.inventoryRfidFilterOn1);
-        if (mDid != null || (MainActivity.csLibrary4A.getSelectEnable() == false && MainActivity.csLibrary4A.getInvMatchEnable() == false && MainActivity.csLibrary4A.getRssiFilterEnable() == false))
-            rfidFilterOn.setVisibility(View.GONE);
-        rfidYieldView = (TextView) getActivity().findViewById(R.id.inventoryRfidYield1);
-        rfidRateView = (TextView) getActivity().findViewById(R.id.inventoryRfidRate1);
-        button = (Button) getActivity().findViewById(R.id.inventoryRfidButton1);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startStopHandler(false);
-            }
-        });
-        verifyRfidButton = (Button) getActivity().findViewById(R.id.verifyRfidButton);
-        verifyRfidButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
-                    verifyTagsList();
-                } else {
-                    verifyTagsListOffline();
-                }
-            }
-        });
-        Button clearListButton = (Button) getActivity().findViewById(R.id.clearListButton);
-        clearListButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clearTagsList();
-                Toast.makeText(getActivity(), "Liste vidée", Toast.LENGTH_SHORT).show();
-            }
-        });
-        vibrateTimeBackup = MainActivity.csLibrary4A.getVibrateTime();
-        final Button buttonT1 = (Button) getActivity().findViewById(R.id.inventoryRfidButtonT1);
-        buttonT1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String buttonText = buttonT1.getText().toString().trim();
-                if (buttonText.toUpperCase().matches("BUZ")) {
-                    MainActivity.csLibrary4A.appendToLog("setVibrateOn G 1");
-                    MainActivity.csLibrary4A.setVibrateTime(0); MainActivity.csLibrary4A.setVibrateOn(1);
-                    buttonT1.setText("STOP");
-                }
-                else {
-                    MainActivity.csLibrary4A.appendToLog("setVibrateOn H 0");
-                    MainActivity.csLibrary4A.setVibrateOn(0);
-                    buttonT1.setText("BUZ");
-                }
-            }
-        });
-
-        settingRfidButton = getActivity().findViewById(R.id.settingRfidButton);
-        if (settingRfidButton != null) {
-            settingRfidButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    getActivity().getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                    SettingFragment settingFragment = new SettingFragment();
-                    getParentFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.content_frame, settingFragment, TAG_CONTENT_FRAGMENT)
-                        .addToBackStack(null)
-                        .commit();
+                    MainActivity.sharedObjects.tagsList.set(position, readerDevice);
+                    if (readerDevice.getSelected()) MainActivity.tagSelected = readerDevice;
+                    else MainActivity.tagSelected = null;
+                    for (int i = 0; i < MainActivity.sharedObjects.tagsList.size(); i++) {
+                        if (i != position) {
+                            ReaderDevice readerDevice1 = MainActivity.sharedObjects.tagsList.get(i);
+                            if (readerDevice1.getSelected()) {
+                                readerDevice1.setSelected(false);
+                                MainActivity.sharedObjects.tagsList.set(i, readerDevice1);
+                            }
+                        }
+                    }
+                    readerListAdapter.notifyDataSetChanged();
                 }
             });
-        }
-        Button submitRfidButton = (Button) getActivity().findViewById(R.id.SubmitRfidButton);
-        submitRfidButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                submitCheckedTags();
+            rfidRunTime = (TextView) getActivity().findViewById(R.id.inventoryRfidRunTime1);
+            rfidVoltageLevel = (TextView) getActivity().findViewById(R.id.inventoryRfidVoltageLevel1);
+            TextView rfidFilterOn = (TextView) getActivity().findViewById(R.id.inventoryRfidFilterOn1);
+            if (mDid != null || (MainActivity.csLibrary4A.getSelectEnable() == false && MainActivity.csLibrary4A.getInvMatchEnable() == false && MainActivity.csLibrary4A.getRssiFilterEnable() == false))
+                rfidFilterOn.setVisibility(View.GONE);
+            rfidYieldView = (TextView) getActivity().findViewById(R.id.inventoryRfidYield1);
+            rfidRateView = (TextView) getActivity().findViewById(R.id.inventoryRfidRate1);
+            button = (Button) getActivity().findViewById(R.id.inventoryRfidButton1);
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startStopHandler(false);
+                }
+            });
+            verifyRfidButton = (Button) getActivity().findViewById(R.id.verifyRfidButton);
+            verifyRfidButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (SharedPrefManager.getInstance(ctx).isOnlineMode()) {
+                        verifyTagsList();
+                    } else {
+                        verifyTagsListOffline();
+                    }
+                }
+            });
+            Button clearListButton = (Button) getActivity().findViewById(R.id.clearListButton);
+            clearListButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    clearTagsList();
+                    Toast.makeText(getActivity(), "Liste vidée", Toast.LENGTH_SHORT).show();
+                }
+            });
+            vibrateTimeBackup = MainActivity.csLibrary4A.getVibrateTime();
+            final Button buttonT1 = (Button) getActivity().findViewById(R.id.inventoryRfidButtonT1);
+            buttonT1.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String buttonText = buttonT1.getText().toString().trim();
+                    if (buttonText.toUpperCase().matches("BUZ")) {
+                        MainActivity.csLibrary4A.appendToLog("setVibrateOn G 1");
+                        MainActivity.csLibrary4A.setVibrateTime(0); MainActivity.csLibrary4A.setVibrateOn(1);
+                        buttonT1.setText("STOP");
+                    }
+                    else {
+                        MainActivity.csLibrary4A.appendToLog("setVibrateOn H 0");
+                        MainActivity.csLibrary4A.setVibrateOn(0);
+                        buttonT1.setText("BUZ");
+                    }
+                }
+            });
+
+            settingRfidButton = getActivity().findViewById(R.id.settingRfidButton);
+            if (settingRfidButton != null) {
+                settingRfidButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        getActivity().getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                        SettingFragment settingFragment = new SettingFragment();
+                        getParentFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.content_frame, settingFragment, TAG_CONTENT_FRAGMENT)
+                            .addToBackStack(null)
+                            .commit();
+                    }
+                });
             }
-        });
-        baseUrl2 = SharedPrefManager.getInstance(ctx).getServerUrl();
-        setupFilterSpinner();
+            Button submitRfidButton = (Button) getActivity().findViewById(R.id.SubmitRfidButton);
+            submitRfidButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    submitCheckedTags();
+                }
+            });
+            baseUrl2 = SharedPrefManager.getInstance(ctx).getServerUrl();
+            setupFilterSpinner();
+        }
+
     }
     @Override
     public void onResume() {
         super.onResume();
-        clearTagsList();
-        if (DEBUG) MainActivity.csLibrary4A.appendToLog("LectureFragment().onResume(): userVisibleHint = " + userVisibleHint);
-        if (userVisibleHint) setNotificationListener();
+        if(MainActivity.csLibrary4A.isBleConnected()){
+            clearTagsList();
+            if (DEBUG) MainActivity.csLibrary4A.appendToLog("LectureFragment().onResume(): userVisibleHint = " + userVisibleHint);
+            if (userVisibleHint) setNotificationListener();
+        }
     }
     @Override
     public void onPause() {
-        MainActivity.csLibrary4A.setNotificationListener(null);
+        if(MainActivity.csLibrary4A.isBleConnected()){
+            MainActivity.csLibrary4A.setNotificationListener(null);
+        }
         super.onPause();
     }
     @Override
     public void onDestroy() {
-        mHandler.removeCallbacks(runnableCheckReady);
-        MainActivity.csLibrary4A.setNotificationListener(null);
-        if (inventoryRfidTask != null) {
-            if (DEBUG) MainActivity.csLibrary4A.appendToLog("LectureFragment().onDestory(): VALID inventoryRfidTask");
-            inventoryRfidTask.taskCancelReason = InventoryRfidTask.TaskCancelRReason.DESTORY;
-            MainActivity.csLibrary4A.abortOperation(); //added in case inventoryRiidTask is removed
+        if(MainActivity.csLibrary4A.isBleConnected()){
+            mHandler.removeCallbacks(runnableCheckReady);
+            MainActivity.csLibrary4A.setNotificationListener(null);
+            if (inventoryRfidTask != null) {
+                if (DEBUG) MainActivity.csLibrary4A.appendToLog("LectureFragment().onDestory(): VALID inventoryRfidTask");
+                inventoryRfidTask.taskCancelReason = InventoryRfidTask.TaskCancelRReason.DESTORY;
+                MainActivity.csLibrary4A.abortOperation(); //added in case inventoryRiidTask is removed
+            }
+            MainActivity.csLibrary4A.setSameCheck(true);
+            MainActivity.csLibrary4A.setInvBrandId(false);
+            resetSelectData();
+            MainActivity.csLibrary4A.setVibrateTime(vibrateTimeBackup);
+            if (DEBUG) MainActivity.csLibrary4A.appendToLog("LectureFragment().onDestory(): onDestory()");
         }
-        MainActivity.csLibrary4A.setSameCheck(true);
-        MainActivity.csLibrary4A.setInvBrandId(false);
-        resetSelectData();
-        MainActivity.csLibrary4A.setVibrateTime(vibrateTimeBackup);
-        if (DEBUG) MainActivity.csLibrary4A.appendToLog("LectureFragment().onDestory(): onDestory()");
         super.onDestroy();
     }
     boolean userVisibleHint = true;
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if(getUserVisibleHint()) {
-            userVisibleHint = true;
-            MainActivity.csLibrary4A.appendToLog("LectureFragment is now VISIBLE");
-            MainActivity.csLibrary4A.appendToLog("11 mDid = " + mDid + ", MainActivity.mDid = " + MainActivity.mDid);
-            if (MainActivity.mDid != null && MainActivity.mDid.indexOf("E28011") == 0) {
-                int iValue = Integer.valueOf(MainActivity.mDid.substring(6, 8), 16);
-                iValue &= 0x0F;
-                MainActivity.csLibrary4A.appendToLog(String.format("iValue = 0x%X", iValue));
-                if (iValue > 0 && iValue < 6) {
-                    checkBoxFilterByProtect.setVisibility(View.VISIBLE);
-                    editTextProtectPassword.setVisibility(View.VISIBLE);
-                } else {
-                    checkBoxFilterByProtect.setVisibility(View.GONE); checkBoxFilterByProtect.setChecked(false);
-                    editTextProtectPassword.setVisibility(View.GONE);
+        if (MainActivity.csLibrary4A.isBleConnected()) {
+            if(getUserVisibleHint()) {
+                userVisibleHint = true;
+                MainActivity.csLibrary4A.appendToLog("LectureFragment is now VISIBLE");
+                MainActivity.csLibrary4A.appendToLog("11 mDid = " + mDid + ", MainActivity.mDid = " + MainActivity.mDid);
+                if (MainActivity.mDid != null && MainActivity.mDid.indexOf("E28011") == 0) {
+                    int iValue = Integer.valueOf(MainActivity.mDid.substring(6, 8), 16);
+                    iValue &= 0x0F;
+                    MainActivity.csLibrary4A.appendToLog(String.format("iValue = 0x%X", iValue));
+                    if (iValue > 0 && iValue < 6) {
+                        checkBoxFilterByProtect.setVisibility(View.VISIBLE);
+                        editTextProtectPassword.setVisibility(View.VISIBLE);
+                    } else {
+                        checkBoxFilterByProtect.setVisibility(View.GONE); checkBoxFilterByProtect.setChecked(false);
+                        editTextProtectPassword.setVisibility(View.GONE);
+                    }
                 }
-            }
-            MainActivity.csLibrary4A.appendToLog("setNotificationListener in multibank inventory");
-            setNotificationListener();
-        } else {
-            userVisibleHint = false;
-            MainActivity.csLibrary4A.appendToLog("LectureFragment is now INVISIBLE");
-            MainActivity.csLibrary4A.appendToLog("setNotificationListener null in multibank inventory");
-            MainActivity.csLibrary4A.setNotificationListener(null);
-            if (inventoryRfidTask != null) {
-                inventoryRfidTask.taskCancelReason = InventoryRfidTask.TaskCancelRReason.STOP;
+                MainActivity.csLibrary4A.appendToLog("setNotificationListener in multibank inventory");
+                setNotificationListener();
+            } else {
+                userVisibleHint = false;
+                MainActivity.csLibrary4A.appendToLog("LectureFragment is now INVISIBLE");
+                MainActivity.csLibrary4A.appendToLog("setNotificationListener null in multibank inventory");
+                MainActivity.csLibrary4A.setNotificationListener(null);
+                if (inventoryRfidTask != null) {
+                    inventoryRfidTask.taskCancelReason = InventoryRfidTask.TaskCancelRReason.STOP;
+                }
             }
         }
     }

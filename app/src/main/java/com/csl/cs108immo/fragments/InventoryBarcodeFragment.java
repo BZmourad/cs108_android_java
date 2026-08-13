@@ -15,6 +15,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.csl.cs108immo.InventoryBarcodeTask;
+import com.csl.cs108immo.InventoryRfidTask;
 import com.csl.cs108immo.MainActivity;
 import com.csl.cs108immo.R;
 import com.csl.cs108immo.SaveList2ExternalTask;
@@ -75,8 +76,10 @@ public class InventoryBarcodeFragment extends CommonFragment {
 
     void clearTagsList() {
         barcodeYieldView.setText(""); barcodeTotal.setText("");
-        MainActivity.sharedObjects.barsList.clear();
-        readerListAdapter.notifyDataSetChanged();
+        if(MainActivity.csLibrary4A.isBleConnected()){
+            MainActivity.sharedObjects.barsList.clear();
+            readerListAdapter.notifyDataSetChanged();
+        }
     }
     void sortTagsList() {
         Collections.sort(MainActivity.sharedObjects.barsList);
@@ -217,6 +220,9 @@ public class InventoryBarcodeFragment extends CommonFragment {
 
         barcodeYieldView = (TextView) getActivity().findViewById(R.id.inventoryBarcodeYield);
         button = (Button) getActivity().findViewById(R.id.inventoryBarcodeButton);
+        if(MainActivity.csLibrary4A.isBleConnected() == false){
+            button.setVisibility(View.GONE);
+        }
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -248,6 +254,9 @@ public class InventoryBarcodeFragment extends CommonFragment {
         });
 
         settingBarcodeButton = getActivity().findViewById(R.id.settingBarcodeButton);
+        if(MainActivity.csLibrary4A.isBleConnected() == false){
+            settingBarcodeButton.setVisibility(View.GONE);
+        }
         if (settingBarcodeButton != null) {
             settingBarcodeButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -263,34 +272,41 @@ public class InventoryBarcodeFragment extends CommonFragment {
             });
         }
 
-        MainActivity.csLibrary4A.getBarcodePreSuffix();
-
+        if(MainActivity.csLibrary4A.isBleConnected()){
+            MainActivity.csLibrary4A.getBarcodePreSuffix();
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
         clearTagsList();
-        if (true) MainActivity.csLibrary4A.appendToLog("InventoryBarcodeFragment().onResume(): userVisibleHint = " + userVisibleHint);
-        if (userVisibleHint) {
-            MainActivity.csLibrary4A.setAutoBarStartSTop(true); setNotificationListener();
+        if(MainActivity.csLibrary4A.isBleConnected()){
+            if (true) MainActivity.csLibrary4A.appendToLog("InventoryBarcodeFragment().onResume(): userVisibleHint = " + userVisibleHint);
+            if (userVisibleHint) {
+                MainActivity.csLibrary4A.setAutoBarStartSTop(true); setNotificationListener();
+            }
         }
     }
 
     @Override
     public void onPause() {
-        MainActivity.csLibrary4A.setNotificationListener(null);
-        if (inventoryBarcodeTask != null) {
-            if (DEBUG) MainActivity.csLibrary4A.appendToLog("InventoryBarcodeFragment().onDestory(): VALID inventoryBarcodeTask");
-            inventoryBarcodeTask.taskCancelReason = InventoryBarcodeTask.TaskCancelRReason.DESTORY;
+        if(MainActivity.csLibrary4A.isBleConnected()){
+            MainActivity.csLibrary4A.setNotificationListener(null);
+            if (inventoryBarcodeTask != null) {
+                if (DEBUG) MainActivity.csLibrary4A.appendToLog("InventoryBarcodeFragment().onDestory(): VALID inventoryBarcodeTask");
+                inventoryBarcodeTask.taskCancelReason = InventoryBarcodeTask.TaskCancelRReason.DESTORY;
+            }
+            if (DEBUG) MainActivity.csLibrary4A.appendToLog("InventoryBarcodeFragment().onDestory(): onDestory()");
         }
-        if (DEBUG) MainActivity.csLibrary4A.appendToLog("InventoryBarcodeFragment().onDestory(): onDestory()");
         super.onPause();
     }
 
     @Override
     public void onDestroy() {
-        MainActivity.csLibrary4A.setAutoBarStartSTop(false); MainActivity.csLibrary4A.setNotificationListener(null);
+        if(MainActivity.csLibrary4A.isBleConnected()){
+            MainActivity.csLibrary4A.setAutoBarStartSTop(false); MainActivity.csLibrary4A.setNotificationListener(null);
+        }
         super.onDestroy();
     }
 
@@ -308,15 +324,17 @@ public class InventoryBarcodeFragment extends CommonFragment {
     boolean userVisibleHint = false;
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-        if(getUserVisibleHint()) {
-            MainActivity.csLibrary4A.appendToLog("InventoryBarcodeFragment is now VISIBLE");
-            userVisibleHint = true;
-            MainActivity.csLibrary4A.setAutoBarStartSTop(true); setNotificationListener();
-        } else {
-            MainActivity.csLibrary4A.appendToLog("InventoryBarcodeFragment is now INVISIBLE");
-            userVisibleHint = false;
-            MainActivity.csLibrary4A.setAutoBarStartSTop(false); MainActivity.csLibrary4A.setNotificationListener(null);
+        if (MainActivity.csLibrary4A.isBleConnected()) {
+            super.setUserVisibleHint(isVisibleToUser);
+            if(getUserVisibleHint()) {
+                MainActivity.csLibrary4A.appendToLog("InventoryBarcodeFragment is now VISIBLE");
+                userVisibleHint = true;
+                MainActivity.csLibrary4A.setAutoBarStartSTop(true); setNotificationListener();
+            } else {
+                MainActivity.csLibrary4A.appendToLog("InventoryBarcodeFragment is now INVISIBLE");
+                userVisibleHint = false;
+                MainActivity.csLibrary4A.setAutoBarStartSTop(false); MainActivity.csLibrary4A.setNotificationListener(null);
+            }
         }
     }
 

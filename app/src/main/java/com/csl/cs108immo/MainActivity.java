@@ -377,7 +377,7 @@ public class MainActivity extends LayoutBarActivity {
         selectItem(DrawerPositions.READWRITE);
     }
     public void inventaireClicked(View view) {
-        if (csLibrary4A.isBleConnected() == false) {
+        /*if (csLibrary4A.isBleConnected() == false) {
             Toast.makeText(MainActivity.mContext, "Bluetooth déconnecté. Veuillez vous connecter.", Toast.LENGTH_SHORT).show();
             return;
         } else {
@@ -385,7 +385,11 @@ public class MainActivity extends LayoutBarActivity {
             FragmentManager fragmentManager = getSupportFragmentManager();
             fragmentManager.beginTransaction().replace(R.id.content_frame, fragment, TAG_CONTENT_FRAGMENT).addToBackStack(null).commit();
             mDrawerLayout.closeDrawer(mDrawerList);
-        }
+        }*/
+        fragment = new InventaireFragment();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.content_frame, fragment, TAG_CONTENT_FRAGMENT).addToBackStack(null).commit();
+        mDrawerLayout.closeDrawer(mDrawerList);
     }
     public void rrUserClicked(View view) { selectItem(DrawerPositions.READWRITEUSER); }
 

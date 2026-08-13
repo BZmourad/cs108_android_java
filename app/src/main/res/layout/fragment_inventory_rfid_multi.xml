@@ -6,331 +6,378 @@
     android:orientation="vertical">
 
     <LinearLayout
+        android:id="@+id/disconnectedLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="0dp"
-        android:background="#DBDBDB"
-        android:visibility="gone"
-        android:gravity="center_vertical">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="#FFFFFF"
+        android:padding="20dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@android:drawable/ic_dialog_alert"
+            android:layout_marginBottom="20dp"
+            android:contentDescription="Erreur de connexion" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Filtrer par statut :"
-            android:textSize="14sp"
+            android:text="Lecteur cs108 déconnecté"
+            android:textSize="24sp"
             android:textStyle="bold"
-            android:layout_marginEnd="12dp"/>
-
-        <Spinner
-            android:id="@+id/filterSpinner"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@android:drawable/btn_dropdown"
-            android:padding="8dp"/>
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/inventoryMultibankSetting"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:orientation="vertical">
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <CheckBox
-                android:id="@+id/accessInventoryBankTitle1"
-                android:layout_width="wrap_content"
-                style="@style/style_normal_font"
-                android:text="Bank"/>
-
-            <Spinner
-                android:id="@+id/accessInventoryBank1"
-                android:layout_margin="0dp"
-                android:layout_weight="3"
-                style="@style/style_default_spinner" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                style="@style/style_normal_font"
-                android:text="@string/readWriteOffset_title" />
-
-            <EditText
-                android:id="@+id/accessInventoryOffset1"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:inputType="numberDecimal"
-                android:gravity="center"
-                style="@style/style_normal_font"
-                android:text="0" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                style="@style/style_normal_font"
-                android:text="@string/readWriteSize_title" />
-
-            <EditText
-                android:id="@+id/accessInventoryLength1"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:inputType="numberDecimal"
-                android:gravity="center"
-                style="@style/style_normal_font"
-                android:text="2" />
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <CheckBox
-                android:id="@+id/accessInventoryBankTitle2"
-                android:layout_width="wrap_content"
-                style="@style/style_normal_font"
-                android:text="Bank" />
-
-            <Spinner
-                android:id="@+id/accessInventoryBank2"
-                android:layout_margin="0dp"
-                android:layout_weight="3"
-                style="@style/style_default_spinner" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                style="@style/style_normal_font"
-                android:text="@string/readWriteOffset_title" />
-
-            <EditText
-                android:id="@+id/accessInventoryOffset2"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:inputType="numberDecimal"
-                android:gravity="center"
-                style="@style/style_normal_font"
-                android:text="0" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                style="@style/style_normal_font"
-                android:text="@string/readWriteSize_title" />
-
-            <EditText
-                android:id="@+id/accessInventoryLength2"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:inputType="numberDecimal"
-                style="@style/style_normal_font"
-                android:text="2" />
-        </TableRow>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="95"
-        android:gravity="center|bottom"
-        android:orientation="vertical" >
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center|bottom"
-            android:orientation="horizontal" >
-
-            <CheckBox
-                android:id="@+id/accessInventoryDupElim"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_gravity="center"
-                android:visibility="gone"
-                style="@style/style_normal_font"
-                android:checked="true"
-                android:text="duplicate elimination"/>
-
-            <CheckBox
-                android:id="@+id/accessInventoryFilterByTid"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_gravity="center"
-                android:visibility="gone"
-                style="@style/style_normal_font"
-                android:checked="true"
-                android:text="FM13DT160 only"/>
-
-            <CheckBox
-                android:id="@+id/accessInventoryFilterByEpc"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_gravity="center"
-                android:visibility="gone"
-                style="@style/style_normal_font"
-                android:text="sgtin only"/>
-
-            <CheckBox
-                android:id="@+id/accessInventoryFilterByProtect"
-                android:layout_width="0dp"
-                android:layout_weight="2"
-                android:layout_gravity="center"
-                android:visibility="gone"
-                style="@style/style_normal_font"
-                android:text="protected only with password"/>
-
-            <include
-                android:id="@+id/accessInventoryProtectPassword"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                layout="@layout/custom_edittext_password"/>
-        </LinearLayout>
-
-        <ListView
-            android:id="@+id/inventoryRfidList1"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="95"
-            android:divider="@android:color/darker_gray"
-            android:dividerHeight="0.25dp" />
+            android:textColor="#D32F2F"
+            android:gravity="center"
+            android:layout_marginBottom="10dp" />
 
         <TextView
-            android:id="@+id/inventoryRfidEmpty1"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="95"
-            android:padding="@dimen/default_padding"
-            style="@style/style_medium_font"
-            android:text="@string/notag_found"
-            android:visibility="gone" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Veuillez vous connecter."
+            android:textSize="18sp"
+            android:textColor="#757575"
+            android:gravity="center"
+            android:layout_marginBottom="30dp" />
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/mainContentLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
         <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="0dp"
+            android:background="#DBDBDB"
+            android:visibility="gone"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Filtrer par statut :"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginEnd="12dp"/>
+
+            <Spinner
+                android:id="@+id/filterSpinner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@android:drawable/btn_dropdown"
+                android:padding="8dp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/inventoryMultibankSetting"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:orientation="horizontal">
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:orientation="vertical">
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <CheckBox
+                    android:id="@+id/accessInventoryBankTitle1"
+                    android:layout_width="wrap_content"
+                    style="@style/style_normal_font"
+                    android:text="Bank"/>
+
+                <Spinner
+                    android:id="@+id/accessInventoryBank1"
+                    android:layout_margin="0dp"
+                    android:layout_weight="3"
+                    style="@style/style_default_spinner" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    style="@style/style_normal_font"
+                    android:text="@string/readWriteOffset_title" />
+
+                <EditText
+                    android:id="@+id/accessInventoryOffset1"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:inputType="numberDecimal"
+                    android:gravity="center"
+                    style="@style/style_normal_font"
+                    android:text="0" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    style="@style/style_normal_font"
+                    android:text="@string/readWriteSize_title" />
+
+                <EditText
+                    android:id="@+id/accessInventoryLength1"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:inputType="numberDecimal"
+                    android:gravity="center"
+                    style="@style/style_normal_font"
+                    android:text="2" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <CheckBox
+                    android:id="@+id/accessInventoryBankTitle2"
+                    android:layout_width="wrap_content"
+                    style="@style/style_normal_font"
+                    android:text="Bank" />
+
+                <Spinner
+                    android:id="@+id/accessInventoryBank2"
+                    android:layout_margin="0dp"
+                    android:layout_weight="3"
+                    style="@style/style_default_spinner" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    style="@style/style_normal_font"
+                    android:text="@string/readWriteOffset_title" />
+
+                <EditText
+                    android:id="@+id/accessInventoryOffset2"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:inputType="numberDecimal"
+                    android:gravity="center"
+                    style="@style/style_normal_font"
+                    android:text="0" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    style="@style/style_normal_font"
+                    android:text="@string/readWriteSize_title" />
+
+                <EditText
+                    android:id="@+id/accessInventoryLength2"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:inputType="numberDecimal"
+                    style="@style/style_normal_font"
+                    android:text="2" />
+            </TableRow>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="95"
+            android:gravity="center|bottom"
+            android:orientation="vertical" >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center|bottom"
+                android:orientation="horizontal" >
+
+                <CheckBox
+                    android:id="@+id/accessInventoryDupElim"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    style="@style/style_normal_font"
+                    android:checked="true"
+                    android:text="duplicate elimination"/>
+
+                <CheckBox
+                    android:id="@+id/accessInventoryFilterByTid"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    style="@style/style_normal_font"
+                    android:checked="true"
+                    android:text="FM13DT160 only"/>
+
+                <CheckBox
+                    android:id="@+id/accessInventoryFilterByEpc"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    style="@style/style_normal_font"
+                    android:text="sgtin only"/>
+
+                <CheckBox
+                    android:id="@+id/accessInventoryFilterByProtect"
+                    android:layout_width="0dp"
+                    android:layout_weight="2"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    style="@style/style_normal_font"
+                    android:text="protected only with password"/>
+
+                <include
+                    android:id="@+id/accessInventoryProtectPassword"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    layout="@layout/custom_edittext_password"/>
+            </LinearLayout>
+
+            <ListView
+                android:id="@+id/inventoryRfidList1"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="95"
+                android:divider="@android:color/darker_gray"
+                android:dividerHeight="0.25dp" />
+
+            <TextView
+                android:id="@+id/inventoryRfidEmpty1"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="95"
+                android:padding="@dimen/default_padding"
+                style="@style/style_medium_font"
+                android:text="@string/notag_found"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/inventoryRfidButtonT1"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="match_parent"
+                    style="@style/style_button_font"
+                    android:text="BUZ" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/inventoryRfidRunTime1"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:textAlignment="textStart" />
+
+                <TextView
+                    android:id="@+id/inventoryRfidFilterOn1"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:textColor="#ff0000"
+                    android:text="Filter On" />
+
+                <TextView
+                    android:id="@+id/inventoryRfidVoltageLevel1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center|bottom"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:id="@+id/inventoryRfidYield1"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                style="@style/style_button_font_2" />
 
             <Button
-                android:id="@+id/inventoryRfidButtonT1"
+                android:id="@+id/inventoryRfidButton1"
+                style="@style/style_button_font"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/start_title"
+                android:textSize="15sp"
+                tools:ignore="TextContrastCheck" />
+
+            <Button
+                android:id="@+id/SubmitRfidButton"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
                 style="@style/style_button_font"
-                android:text="BUZ" />
+                android:textSize="15sp"
+                android:text="Valider" />
+
+            <TextView
+                android:id="@+id/inventoryRfidRate1"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                style="@style/style_button_font_2" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_height="50dp"
+            android:gravity="center|bottom"
+            android:orientation="horizontal" >
 
-            <TextView
-                android:id="@+id/inventoryRfidRunTime1"
+            <Button
+                android:id="@+id/verifyRfidButton"
+                style="@style/style_button_font"
                 android:layout_width="0dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:textAlignment="textStart" />
+                android:text="Vérifier"
+                android:textSize="15sp"
+                tools:ignore="TextContrastCheck" />
 
-            <TextView
-                android:id="@+id/inventoryRfidFilterOn1"
+            <Button
+                android:id="@+id/clearListButton"
+                style="@style/style_button_font"
                 android:layout_width="0dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:textColor="#ff0000"
-                android:text="Filter On" />
+                android:text="Vider"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                tools:ignore="TextContrastCheck" />
 
-            <TextView
-                android:id="@+id/inventoryRfidVoltageLevel1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+            <Button
+                android:id="@+id/settingRfidButton"
+                style="@style/style_button_font"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Paramétre"
+                android:textSize="15sp"
+                tools:ignore="TextContrastCheck" />
+
         </LinearLayout>
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:gravity="center|bottom"
-        android:orientation="horizontal" >
-
-        <TextView
-            android:id="@+id/inventoryRfidYield1"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            style="@style/style_button_font_2" />
-
-        <Button
-            android:id="@+id/inventoryRfidButton1"
-            style="@style/style_button_font"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="@string/start_title"
-            android:textSize="15sp"
-            tools:ignore="TextContrastCheck" />
-
-        <Button
-            android:id="@+id/SubmitRfidButton"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            style="@style/style_button_font"
-            android:textSize="15sp"
-            android:text="Valider" />
-
-        <TextView
-            android:id="@+id/inventoryRfidRate1"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            style="@style/style_button_font_2" />
-    </LinearLayout>
-    
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:gravity="center|bottom"
-        android:orientation="horizontal" >
-
-        <Button
-            android:id="@+id/verifyRfidButton"
-            style="@style/style_button_font"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="Vérifier"
-            android:textSize="15sp"
-            tools:ignore="TextContrastCheck" />
-
-        <Button
-            android:id="@+id/clearListButton"
-            style="@style/style_button_font"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="Vider"
-            android:textColor="#FFFFFF"
-            android:textSize="15sp"
-            tools:ignore="TextContrastCheck" />
-
-        <Button
-            android:id="@+id/settingRfidButton"
-            style="@style/style_button_font"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:text="Paramétre"
-            android:textSize="15sp"
-            tools:ignore="TextContrastCheck" />
-
-    </LinearLayout>
 </LinearLayout>
