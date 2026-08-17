@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="RFID Tag Operations"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:paddingBottom="16dp"/>
+        
+        <!-- EPC Display -->
+        <TextView
+            android:id="@+id/textViewEpcValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="EPC: "
+            android:textSize="14sp"
+            android:paddingBottom="16dp"/>
+        
+        <!-- Read Operations -->
+        <Button
+            android:id="@+id/buttonReadEpc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Read EPC"
+            android:layout_marginBottom="8dp"/>
+        
+        <Button
+            android:id="@+id/buttonReadTid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Read TID"
+            android:layout_marginBottom="8dp"/>
+        
+        <Button
+            android:id="@+id/buttonReadUser"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Read User Memory"
+            android:layout_marginBottom="16dp"/>
+        
+        <!-- Write EPC -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Write EPC:"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:paddingBottom="8dp"/>
+        
+        <EditText
+            android:id="@+id/editTextNewEpc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter new EPC (hex)"
+            android:inputType="text"
+            android:layout_marginBottom="8dp"/>
+        
+        <Button
+            android:id="@+id/buttonWriteEpc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Write EPC"
+            android:layout_marginBottom="16dp"/>
+        
+        <!-- Password field -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Access Password:"
+            android:textSize="14sp"
+            android:paddingBottom="4dp"/>
+        
+        <EditText
+            android:id="@+id/editTextAccessPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="00000000"
+            android:inputType="text"
+            android:maxLength="8"
+            android:layout_marginBottom="16dp"/>
+        
+        <Button
+            android:id="@+id/buttonClose"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Close"/>
+        
+    </LinearLayout>
+</ScrollView>

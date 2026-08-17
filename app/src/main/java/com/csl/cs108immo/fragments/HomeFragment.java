@@ -29,9 +29,11 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.os.Handler;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
@@ -60,6 +62,9 @@ import com.csl.cs108immo.app.db.DatabaseHelper;
 
 public class HomeFragment extends CommonFragment {
     final boolean DEBUG = false;
+    protected Handler connectionHandler = new Handler();
+    protected Runnable connectionChecker;
+    protected static final int CHECK_INTERVAL = 1000;
 
     @Override
     public void onAttach(Context context) {
@@ -78,13 +83,20 @@ public class HomeFragment extends CommonFragment {
     public void onResume() {
         super.onResume();
         updateButtonStatesBasedOnMode();
+        startConnectionMonitoring1();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        stopConnectionMonitoring1();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState, true);
         if (getActivity().getPackageName().contains("com.csl.cs710ademoapp")) return inflater.inflate(R.layout.home_layout710, container, false);
-        else return inflater.inflate(R.layout.home_layout_new, container, false);
+        else return inflater.inflate(R.layout.dashboard, container, false);
     }
 
     @Override
@@ -666,6 +678,45 @@ public class HomeFragment extends CommonFragment {
 
     void popupAlert() {
 
+    }
+
+    public void startConnectionMonitoring1() {
+        connectionChecker = new Runnable() {
+            @Override
+            public void run() {
+                updateConnectionStatus1();
+                connectionHandler.postDelayed(this, CHECK_INTERVAL);
+            }
+        };
+        connectionHandler.post(connectionChecker);
+    }
+
+    public void stopConnectionMonitoring1() {
+        connectionHandler.removeCallbacks(connectionChecker);
+    }
+
+    public void updateConnectionStatus1() {
+
+        boolean isRfidConnected = MainActivity.csLibrary4A.isBleConnected();
+        getActivity().runOnUiThread(() -> {
+            if(isRfidConnected){
+                CardView cardReaderConnected = (CardView) getActivity().findViewById(R.id.cardReaderConnected);
+                cardReaderConnected.setVisibility(View.VISIBLE);
+                TextView cardReaderConnectedPower = (TextView) getActivity().findViewById(R.id.cardReaderConnectedPower);
+                TextView cardReaderConnectedBattery = (TextView) getActivity().findViewById(R.id.cardReaderConnectedBattery);
+                ProgressBar batteryProgress = (ProgressBar) getActivity().findViewById(R.id.batteryProgress);
+                cardReaderConnectedPower.setText(String.valueOf(MainActivity.csLibrary4A.getPwrlevel()));
+                cardReaderConnectedBattery.setText(MainActivity.csLibrary4A.getBatteryDisplay2());
+                batteryProgress.setProgress(Integer.parseInt(MainActivity.csLibrary4A.getBatteryDisplay2().replace("%", "")));
+                CardView cardReaderDisconnected = (CardView) getActivity().findViewById(R.id.cardReaderDisconnected);
+                cardReaderDisconnected.setVisibility(View.GONE);
+            } else {
+                CardView cardReaderConnected = (CardView) getActivity().findViewById(R.id.cardReaderConnected);
+                cardReaderConnected.setVisibility(View.GONE);
+                CardView cardReaderDisconnected = (CardView) getActivity().findViewById(R.id.cardReaderDisconnected);
+                cardReaderDisconnected.setVisibility(View.VISIBLE);
+            }
+        });
     }
 
 }

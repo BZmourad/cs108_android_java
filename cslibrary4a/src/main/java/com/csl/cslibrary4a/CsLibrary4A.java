@@ -2048,6 +2048,13 @@ public class CsLibrary4A {
         else Log.i("Hello2", "getBatteryDisplay is called befoe connection !!!");
         return null;
     }
+    public String getBatteryDisplay2() {
+        if (DEBUG) Log.i("Hello2", "getBatteryDisplay2");
+        if (isCs108Connected()) return cs108Library4A.getBatteryDisplay2();
+        else if (isCs710Connected()) return cs710Library4A.getBatteryDisplay2();
+        else Log.i("Hello2", "getBatteryDisplay2 is called befoe connection !!!");
+        return null;
+    }
     String stringNOTCONNECT;
     public String isBatteryLow() {
         if (DEBUG) Log.i("Hello2", "isBatteryLow");

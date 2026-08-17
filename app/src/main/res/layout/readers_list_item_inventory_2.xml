@@ -53,6 +53,19 @@
             android:paddingHorizontal="5dp"
             android:paddingVertical="5dp"
             android:src="@drawable/search_icon" />
+
+        <ImageButton
+            android:id="@+id/buttonRfidTag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="#4B77BE"
+            android:layout_marginEnd="1dp"
+            android:contentDescription="RFID Tag"
+            android:paddingHorizontal="7dp"
+            android:paddingVertical="5dp"
+            android:src="@drawable/ic_rfid"
+            android:visibility="visible" />
         <ImageButton
             android:id="@+id/buttonEditDetail"
             android:layout_width="wrap_content"

@@ -20,6 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
             app:cardBackgroundColor="#FFFFFF"
+            android:visibility="gone"
             app:cardCornerRadius="12dp"
             app:cardElevation="4dp">
 
@@ -106,7 +107,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="75%"
+                            android:text="0%"
+                            android:id="@+id/cardReaderConnectedBattery"
                             android:textColor="#4b77be"
                             android:textSize="18sp"
                             android:textStyle="bold" />
@@ -118,7 +120,7 @@
                             android:layout_height="8dp"
                             android:layout_marginTop="4dp"
                             android:max="100"
-                            android:progress="75"
+                            android:progress="0"
                             android:progressTint="#4CAF50"
                             android:progressBackgroundTint="#E0E0E0" />
 
@@ -157,7 +159,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="300 W"
+                            android:text="0"
+                            android:id="@+id/cardReaderConnectedPower"
                             android:textColor="#4b77be"
                             android:textSize="18sp"
                             android:textStyle="bold" />
@@ -181,6 +184,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             app:cardBackgroundColor="#FFFFFF"
+            android:visibility="gone"
             app:cardCornerRadius="12dp"
             app:cardElevation="2dp">
 

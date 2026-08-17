@@ -1883,6 +1883,11 @@ public class Cs710Library4A {
         if (voltageDisplay == false) retString +=  String.format("\r\n P=%d", getPwrlevel());
         return retString;
     }
+    public String getBatteryDisplay2() {
+        float floatValue = (float) getBatteryLevel() / 1000;
+        if (floatValue == 0)    return "0%";
+        return (String.format("%d", getBatteryValue2Percent(floatValue)) + "%");
+    }
     String strVersionMBoard = "1.8"; String[] strMBoardVersions = strVersionMBoard.split("\\.");
     int iBatteryNewCurveDelay; boolean bUsingInventoryBatteryCurve = false; float fBatteryValueOld; int iBatteryPercentOld;
     public String isBatteryLow() {

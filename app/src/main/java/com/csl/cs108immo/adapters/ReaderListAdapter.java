@@ -229,6 +229,25 @@ public class ReaderListAdapter extends ArrayAdapter<ReaderDevice> {
                 }
             });
         }
+
+        ImageButton buttonRfidTag = convertView.findViewById(R.id.buttonRfidTag);
+        if (buttonRfidTag != null) {
+            buttonRfidTag.setOnClickListener(v -> {
+                String epc = reader.getAddress();
+                if (epc != null && !epc.isEmpty()) {
+                    try {
+                        com.csl.cs108immo.dialogs.RfidTagOperationsDialog dialog =
+                                com.csl.cs108immo.dialogs.RfidTagOperationsDialog.newInstance(epc);
+                        if (context instanceof androidx.fragment.app.FragmentActivity) {
+                            dialog.show(((androidx.fragment.app.FragmentActivity) context).getSupportFragmentManager(),
+                                    "RfidTagOperationsDialog");
+                        }
+                    } catch (Exception e) {
+                        MainActivity.csLibrary4A.appendToLog("Error showing RFID dialog: " + e.getMessage());
+                    }
+                }
+            });
+        }
         return convertView;
     }
 
