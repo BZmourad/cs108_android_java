@@ -65,7 +65,7 @@
             android:paddingHorizontal="7dp"
             android:paddingVertical="5dp"
             android:src="@drawable/ic_rfid"
-            android:visibility="visible" />
+            android:visibility="gone" />
         <ImageButton
             android:id="@+id/buttonEditDetail"
             android:layout_width="wrap_content"
