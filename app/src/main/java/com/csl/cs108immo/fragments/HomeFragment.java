@@ -144,6 +144,12 @@ public class HomeFragment extends CommonFragment {
 
     private void updateButtonStatesBasedOnMode() {
         LinearLayout mainRow2 = getActivity().findViewById(R.id.mainRow2);
+        if (isOnline) {
+            mainRow2.setVisibility(View.VISIBLE);
+        } else {
+            mainRow2.setVisibility(View.GONE)
+        }
+        /*
         if (mainRow2 != null) {
             boolean isOnline = SharedPrefManager.getInstance(getActivity()).isOnlineMode();
             
@@ -190,7 +196,7 @@ public class HomeFragment extends CommonFragment {
                 clearLayout.setClickable(false);
                 testLayout.setClickable(false);
             }
-        }
+        }*/
     }
 
     private void showDatabaseStats() {

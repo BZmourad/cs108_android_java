@@ -370,6 +370,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:id="@+id/mainRow2"
             android:orientation="horizontal">
 
             <!-- Bouton Synchroniser -->
@@ -381,7 +382,7 @@
                 app:cardBackgroundColor="#800000"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
-                android:onClick="syncClicked"
+                android:onClick="startSynchronization"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?android:attr/selectableItemBackground">
@@ -420,7 +421,7 @@
                 app:cardBackgroundColor="#800000"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
-                android:onClick="clearDatabaseClicked"
+                android:onClick="showClearDatabaseConfirmation"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?android:attr/selectableItemBackground">

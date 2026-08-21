@@ -2,55 +2,45 @@ package com.csl.cs108immo.apps;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import org.json.JSONException;
-import org.json.JSONObject;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
-import java.net.URL;
-import com.csl.cs108immo.apps.SharedPrefManager;
-import com.csl.cs108immo.app.db.DatabaseHelper;
-import com.csl.cs108immo.R;
-import com.csl.cs108immo.MainActivity;
-import com.csl.cs108immo.app.db.models.Utilisateur;
 
-public class LoginActivity extends AppCompatActivity {
+import com.csl.cs108immo.MainActivity;
+import com.csl.cs108immo.R;
+import com.csl.cs108immo.controller.LoginController;
+
+public class LoginActivity extends AppCompatActivity implements LoginController.LoginCallback {
     private EditText etUsername, etPassword;
     private Button btnLogin, btnConfig;
-    private DatabaseHelper dbHelper;
     private ProgressDialog progressDialog;
     private SharedPrefManager sharedPrefManager;
+    private LoginController loginController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Initialize database helper and shared preferences
-        dbHelper = new DatabaseHelper(this);
+        // Initialiser les préférences partagées
         sharedPrefManager = SharedPrefManager.getInstance(this);
+        
+        // Initialiser le contrôleur de login
+        loginController = new LoginController(this);
+        loginController.setCallback(this);
 
-        // Check if user is already logged in
+        // Vérifier si l'utilisateur est déjà connecté
         if (sharedPrefManager.isLoggedIn()) {
             startActivity(new Intent(this, MainActivity.class));
             finish();
             return;
         }
 
-        // Initialize views
+        // Initialiser les vues
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
@@ -73,250 +63,35 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void loginUser() {
-        final String username = etUsername.getText().toString().trim();
-        final String password = etPassword.getText().toString().trim();
+        String username = etUsername.getText().toString().trim();
+        String password = etPassword.getText().toString().trim();
         
-        final boolean isOnline = sharedPrefManager.getAppMode().equals("online");
-
-        if (username.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Please enter username and password", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        showLoading("Authenticating...");
-        if (isOnline) {
-            new LoginTask().execute(username, password);
-        } else {
-            // Offline mode - check local database
-            if (dbHelper.checkUser(username, password)) {
-                Utilisateur user = dbHelper.getUserDetails(username);
-                SharedPrefManager.getInstance(LoginActivity.this).userLogin(
-                        username,
-                        false,
-                        null,
-                        user != null ? user.CodeUtil : "",
-                        user != null ? user.NomPrenomUtil : ""
-                );
-                hideLoading();
-                startActivity(new Intent(this, MainActivity.class));
-                finish();
-            } else {
-                hideLoading();
-                Toast.makeText(this, "Invalid credentials or user not found", Toast.LENGTH_SHORT).show();
-            }
-        }
+        // Déléguer la logique de login au contrôleur
+        loginController.login(username, password);
     }
 
-    private class LoginTask extends AsyncTask<String, Void, String> {
-        private Exception exception;
-        private int responseCode = -1;
-        private String errorMessage = "";
-        private String username;
-        private String password;
+    @Override
+    public void onLoginSuccess() {
+        // Rediriger vers MainActivity
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
 
-        @Override
-        protected String doInBackground(String... params) {
-            username = params[0];
-            password = params[1];
-            String response = "";
-            HttpURLConnection connection = null;
-            BufferedReader reader = null;
+    @Override
+    public void onLoginError(String message) {
+        Toast.makeText(LoginActivity.this, message, Toast.LENGTH_LONG).show();
+    }
 
-            try {
-                // Get server URL from configuration
-                String baseUrl = sharedPrefManager.getServerUrl();
-                // Build the complete URL
-                String urlString = baseUrl + "api-verif-login.awp?log=" +
-                        username + "&motPass=" + password;
-                
-                Log.d("LoginTask", "Attempting to call URL: " + urlString);
+    @Override
+    public void onLoadingStarted() {
+        showLoading("Authenticating...");
+    }
 
-                URL url = new URL(urlString);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(15000);
-                connection.setReadTimeout(15000);
-
-                Log.d("LoginTask", "Connecting to server...");
-
-                responseCode = connection.getResponseCode();
-                Log.d("LoginTask", "Response code: " + responseCode);
-
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        stringBuilder.append(line);
-                    }
-                    response = stringBuilder.toString();
-                    Log.d("LoginTask", "Response: " + response);
-                } else {
-                    InputStream errorStream = connection.getErrorStream();
-                    if (errorStream != null) {
-                        reader = new BufferedReader(new InputStreamReader(errorStream));
-                        StringBuilder errorBuilder = new StringBuilder();
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            errorBuilder.append(line);
-                        }
-                        errorMessage = errorBuilder.toString();
-                        Log.e("LoginTask", "Error response: " + errorMessage);
-                    }
-                }
-            } catch (MalformedURLException e) {
-                exception = e;
-                Log.e("LoginTask", "Malformed URL: " + e.getMessage());
-            } catch (SocketTimeoutException e) {
-                exception = e;
-                errorMessage = "Connection timeout";
-                Log.e("LoginTask", "Connection timeout: " + e.getMessage());
-            } catch (IOException e) {
-                exception = e;
-                errorMessage = "Network error";
-                Log.e("LoginTask", "IO Exception: " + e.getMessage());
-            } catch (Exception e) {
-                exception = e;
-                errorMessage = "Unexpected error";
-                Log.e("LoginTask", "Unexpected error: " + e.getMessage());
-            } finally {
-                try {
-                    if (reader != null) {
-                        reader.close();
-                    }
-                    if (connection != null) {
-                        connection.disconnect();
-                    }
-                } catch (IOException e) {
-                    Log.e("LoginTask", "Error closing connection: " + e.getMessage());
-                }
-            }
-
-            return response;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            hideLoading();
-            
-            if (exception != null) {
-                String errorDetail;
-                if (exception instanceof SocketTimeoutException) {
-                    errorDetail = "Connection timeout. Please check your network and try again.";
-                } else if (exception instanceof IOException) {
-                    errorDetail = "Network error. Please check your internet connection.";
-                } else {
-                    errorDetail = "Error: " + errorMessage;
-                }
-                Toast.makeText(LoginActivity.this, errorDetail, Toast.LENGTH_LONG).show();
-                Log.e("LoginTask", "Error details", exception);
-                return;
-            }
-            
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-                String httpError = "Server returned HTTP code: " + responseCode;
-                if (!errorMessage.isEmpty()) {
-                    httpError += "\n" + errorMessage;
-                }
-                Toast.makeText(LoginActivity.this, httpError, Toast.LENGTH_LONG).show();
-                return;
-            }
-            
-            if (result == null || result.isEmpty()) {
-                Toast.makeText(LoginActivity.this, "Empty response from server", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            
-            try {
-                Log.d("LoginTask", "Parsing response: " + result);
-                JSONObject jsonObject = new JSONObject(result);
-                
-                if (!jsonObject.has("sRes")) {
-                    Toast.makeText(LoginActivity.this, "Invalid server response format", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                
-                String token = jsonObject.getString("sRes");
-                Log.d("LoginTask", "Received token: " + token);
-
-                if (token.equals("error")) {
-                    Toast.makeText(LoginActivity.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
-                } else {
-                    // Login successful - use the saved username from doInBackground
-                    try {
-                        DatabaseHelper dbHelper = new DatabaseHelper(LoginActivity.this);
-                        
-                        // Try to get user details from database
-                        Utilisateur user = null;
-                        try {
-                            user = dbHelper.getUserDetails(username);
-                        } catch (Exception e) {
-                            Log.e("LoginTask", "Error getting user details: " + e.getMessage());
-                        }
-                        
-                        // If user doesn't exist in database, create a new one from API response
-                        if (user == null) {
-                            user = new Utilisateur();
-                            user.login = username;
-                            user.MotPasse = password;
-                            
-                            // Try to get additional info from API response if available
-                            if (jsonObject.has("CodeUtil")) {
-                                user.CodeUtil = jsonObject.getString("CodeUtil");
-                            }
-                            if (jsonObject.has("NomPrenomUtil")) {
-                                user.NomPrenomUtil = jsonObject.getString("NomPrenomUtil");
-                            }
-                            
-                            // Add user to database
-                            try {
-                                dbHelper.addUser(user);
-                                Log.d("LoginTask", "User added to database successfully");
-                            } catch (Exception e) {
-                                Log.e("LoginTask", "Error adding user: " + e.getMessage());
-                            }
-                            
-                            // Get the user again to ensure we have all data
-                            user = dbHelper.getUserDetails(username);
-                        }
-                        
-                        // Save user session
-                        SharedPrefManager.getInstance(LoginActivity.this).userLogin(
-                                username,
-                                true,
-                                token,
-                                user != null ? user.CodeUtil : "",
-                                user != null ? user.NomPrenomUtil : ""
-                        );
-                        
-                        Log.d("LoginTask", "Login successful, starting MainActivity");
-                        
-                        // Proceed to dashboard
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
-                        
-                    } catch (Exception e) {
-                        Log.e("LoginTask", "Error during login process: " + e.getMessage());
-                        Toast.makeText(LoginActivity.this, "Error saving user data: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    }
-                }
-            } catch (JSONException e) {
-                Log.e("LoginTask", "JSON parsing error: " + e.getMessage());
-                Log.e("LoginTask", "Response that failed parsing: " + result);
-                Toast.makeText(LoginActivity.this, "Error parsing server response", Toast.LENGTH_LONG).show();
-            } catch (Exception e) {
-                Log.e("LoginTask", "Unexpected error: " + e.getMessage());
-                Toast.makeText(LoginActivity.this, "Unexpected error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            hideLoading();
-            Toast.makeText(LoginActivity.this, "Login task cancelled", Toast.LENGTH_SHORT).show();
-        }
+    @Override
+    public void onLoadingFinished() {
+        hideLoading();
     }
 
     private void showLoading(String message) {
@@ -343,6 +118,6 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        hideLoading(); // Prevent memory leaks
+        hideLoading(); // Prévenir les fuites de mémoire
     }
 }

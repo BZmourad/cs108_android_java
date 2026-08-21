@@ -1,7 +1,23 @@
 (android studio java)
 
-si online:
-code=?
-filtre_art(code,"",1)
-api-search-code.awp?log=%1&inv=%2&code_art=%3&is_sync=%4&emp=%5&parm=%6
-
+si online: 
+http://196.203.88.132/GESTION_INV_RFID_WEB/FR/api-search-code.awp?log=4mfhDCLQGi9RBQ&inv=IN000000003&is_sync=1&emp=S1&parm=2
+{
+	"sRes": "ok",
+	"tab_srch": [
+		{"code_immo": "IM010O103", "lib": "table d'emballage"},
+		{"code_immo": "IM010O102", "lib": "Armoire de bureau"},
+		{"code_immo": "IM010O101", "lib": "Armoire de bureau"},
+		{"code_immo": "IM010O100", "lib": "Armoire de bureau"},
+		{"code_immo": "IM00110", "lib": "Armoire de bureau"},
+		{"code_immo": "IM00109", "lib": "table d'emballage"},
+		{"code_immo": "IM00108", "lib": "table outillage"},
+		{"code_immo": "IM00107", "lib": "table outillage"},
+		{"code_immo": "IM00106", "lib": "table d'emballage"},
+		{"code_immo": "IM00105", "lib": "Armoire de bureau"},
+		{"code_immo": "IM00104", "lib": "table outillage"},
+		{"code_immo": "IM00103", "lib": "table d'emballage"},
+		{"code_immo": "IM00102", "lib": "PC bureau hp i5"},
+		{"code_immo": "IM00101", "lib": "Armoire de bureau"}
+	]
+}
